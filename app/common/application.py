@@ -9,7 +9,7 @@ import typing as _t  # noqa: F401
 from typing import Set
 
 from app.common.constants import AbortReason, DeviceState, ListeningMode
-from app.service.mcp.mcp_server import McpServer
+from app.mcp.mcp_server import McpServer
 from app.service.protocols.mqtt_protocol import MqttProtocol
 from app.service.protocols.websocket_protocol import WebsocketProtocol
 from app.common.common_utils import handle_verification_code
@@ -1494,7 +1494,7 @@ class Application:
         """
         try:
             logger.info("启动日程提醒服务")
-            from app.service.mcp.tools.calendar import get_reminder_service
+            from app.mcp.tools.calendar import get_reminder_service
 
             # 获取提醒服务实例（通过单例模式）
             reminder_service = get_reminder_service()
@@ -1513,7 +1513,7 @@ class Application:
         """
         try:
             logger.info("启动倒计时器服务")
-            from app.service.mcp.tools.timer.timer_service import get_timer_service
+            from app.mcp.tools.timer.timer_service import get_timer_service
 
             # 获取倒计时器服务实例（通过单例模式）
             get_timer_service()

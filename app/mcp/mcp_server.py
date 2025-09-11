@@ -221,7 +221,6 @@ class McpServer:
     def __init__(self):
         self.tools: List[McpTool] = []
         self._send_callback: Optional[Callable] = None
-        self._camera = None
 
     def set_send_callback(self, callback: Callable):
         """
@@ -255,99 +254,34 @@ class McpServer:
         self.tools.clear()
 
         # 添加系统工具
-        from app.service.mcp.tools.system import get_system_tools_manager
+        from app.mcp.tools.system import get_system_tools_manager
 
         system_manager = get_system_tools_manager()
         system_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
         # 添加日程管理工具
-        from app.service.mcp.tools.calendar import get_calendar_manager
+        from app.mcp.tools.calendar import get_calendar_manager
 
         calendar_manager = get_calendar_manager()
         calendar_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
         # 添加倒计时器工具
-        from app.service.mcp.tools.timer import get_timer_manager
+        from app.mcp.tools.timer import get_timer_manager
 
         timer_manager = get_timer_manager()
         timer_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
         # 添加音乐播放器工具
-        from app.service.mcp.tools.music import get_music_tools_manager
+        from app.mcp.tools.music import get_music_tools_manager
 
         music_manager = get_music_tools_manager()
         music_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
-        # 添加摄像头工具
-        from app.service.mcp.tools.camera import take_photo
 
-        # 注册take_photo工具
-        properties = PropertyList([Property("question", PropertyType.STRING)])
-        VISION_DESC = (
-            "【图像/识图/OCR/问答】当用户提到：拍照、识图、读取/提取文字、OCR、翻译图片文字、"
-            "看一下这张图/截图、这是什么、数一数、识别二维码/条码、对比两张图、分析场景/报错截图、"
-            "表格/票据信息抽取、图片问答 时调用本工具。"
-            "功能：①拍照或接收已有图片/截图/URL；②物体/场景/标签识别；③OCR(多语)与翻译；④计数/位置；"
-            "⑤二维码/条码读取；⑥关键信息抽取(表格/票据)；⑦两图对比；⑧就图回答问题。"
-            "输入建议：{ mode:'capture'|'upload'|'url', image?, url?, question?, target_lang? }；"
-            "若用户未提供图片且允许，可触发拍照(mode='capture')。"
-            "避免：纯文本知识问答、与图片无关的请求。"
-            "English: Vision/OCR/QA tool. Use when the user provides or asks about a photo/screenshot/image: "
-            "describe, classify, OCR, translate, count objects, read QR/barcodes, extract tables/receipts, "
-            "compare two images, image QA. Inputs as above. Do NOT use for pure text queries."
-            "Examples: '这张图是什么', 'OCR这张发票并翻译成英文', '数一下图里有几只猫', '读一下这个二维码', "
-            "'对比这两张UI截图的差异', '把截图里的表格提取成CSV'。"
-        )
 
-        self.add_tool(
-            McpTool(
-                "take_photo",            # 保留原名兼容
-                VISION_DESC,
-                properties,
-                take_photo,
-            )
-        )
 
-        # 添加桌面截图工具
-        from app.service.mcp.tools.screenshot import take_screenshot
 
-        # 注册take_screenshot工具
-        screenshot_properties = PropertyList([
-            Property("question", PropertyType.STRING),
-            Property("display", PropertyType.STRING, default_value=None)
-        ])
-        SCREENSHOT_DESC = (
-            "【桌面截图/屏幕分析】当用户提到：截屏、截图、看看桌面、分析屏幕、桌面上有什么、"
-            "屏幕截图、查看当前界面、分析当前页面、读取屏幕内容、屏幕OCR 时调用本工具。"
-            "功能：①截取整个桌面画面；②屏幕内容识别与分析；③屏幕OCR文字提取；④界面元素分析；"
-            "⑤应用程序识别；⑥错误信息截图分析；⑦桌面状态检查；⑧多屏幕截图。"
-            "参数说明：{ question: '你想了解的关于桌面/屏幕的问题', display: '显示器选择(可选)' }；"
-            "display可选值：'main'/'主屏'/'笔记本'(主显示器), 'secondary'/'副屏'/'外屏'(副显示器), 或留空(所有显示器)；"
-            "适用场景：桌面截图、屏幕分析、界面问题诊断、应用状态查看、错误截图分析等。"
-            "注意：该工具会截取桌面，请确保用户同意截图操作。"
-            "English: Desktop screenshot/screen analysis tool. Use when user mentions: screenshot, screen capture, "
-            "desktop analysis, screen content, current interface, screen OCR, etc. "
-            "Functions: ①Full desktop capture; ②Screen content recognition; ③Screen OCR; ④Interface analysis; "
-            "⑤Application identification; ⑥Error screenshot analysis; ⑦Desktop status check. "
-            "Parameters: { question: 'Question about desktop/screen', display: 'Display selection (optional)' }; "
-            "Display options: 'main'(primary), 'secondary'(external), or empty(all displays). "
-            "Examples: '截个图看看主屏', '查看副屏有什么', '分析当前屏幕内容', '读取屏幕上的文字'。"
-        )
 
-        self.add_tool(
-            McpTool(
-                "take_screenshot",
-                SCREENSHOT_DESC,
-                screenshot_properties,
-                take_screenshot,
-            )
-        )
-
-        # 添加八字命理工具
-        from app.service.mcp.tools.bazi import get_bazi_manager
-
-        bazi_manager = get_bazi_manager()
-        bazi_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 
         # 恢复原有工具
         self.tools.extend(original_tools)
@@ -505,19 +439,7 @@ class McpServer:
         """
         解析capabilities.
         """
-        vision = capabilities.get("vision", {})
-        if vision and isinstance(vision, dict):
-            url = vision.get("url")
-            token = vision.get("token")
-            if url:
-                from app.service.mcp.tools.camera import get_camera_instance
-
-                camera = get_camera_instance()
-                if hasattr(camera, "set_explain_url"):
-                    camera.set_explain_url(url)
-                if token and hasattr(camera, "set_explain_token"):
-                    camera.set_explain_token(token)
-                logger.info(f"Vision service configured with URL: {url}")
+        pass
 
     async def _reply_result(self, id: int, result: Any):
         """

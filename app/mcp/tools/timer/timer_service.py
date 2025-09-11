@@ -257,7 +257,7 @@ class TimerTask:
             arguments = command_dict["arguments"]
 
             # 获取MCP服务器并执行工具
-            from app.service.mcp.mcp_server import McpServer
+            from app.mcp.mcp_server import McpServer
 
             mcp_server = McpServer.get_instance()
 
