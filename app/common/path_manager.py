@@ -1,4 +1,4 @@
-"""路径管理器 - 简化版本
+"""路径管理器
 
 提供统一的路径管理功能，专为XiaoZhi AI项目设计。
 """
@@ -17,7 +17,7 @@ APP_NAME = "XiaoZhi AI"
 
 
 class PathManager:
-    """路径管理器 - 简化版本"""
+    """路径管理器"""
 
     _instance = None
 

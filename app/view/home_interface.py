@@ -1,9 +1,8 @@
 # coding:utf-8
-import os
 from pathlib import Path
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QFont, QMovie, QPixmap
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QSizePolicy
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QMovie, QPixmap
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy
 
 from qfluentwidgets import (
     CardWidget, SubtitleLabel, BodyLabel, PushButton, LineEdit, ScrollArea,
@@ -269,6 +268,14 @@ class TextInputCard(CardWidget):
 class HomeInterface(ScrollArea):
     """首页界面"""
     
+    # 对外信号定义
+    manualPressed = pyqtSignal()
+    manualReleased = pyqtSignal()
+    autoClicked = pyqtSignal()
+    abortClicked = pyqtSignal()
+    modeClicked = pyqtSignal()
+    textSent = pyqtSignal(str)
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("homeInterface")
@@ -315,14 +322,22 @@ class HomeInterface(ScrollArea):
     
     def _connectSignals(self):
         """连接信号"""
-        # 语音控制卡片信号
+        # 语音控制卡片信号 - 直接转发到对外信号
+        self.voiceCard.manualPressed.connect(self.manualPressed.emit)
+        self.voiceCard.manualReleased.connect(self.manualReleased.emit)
+        self.voiceCard.autoClicked.connect(self.autoClicked.emit)
+        self.voiceCard.abortClicked.connect(self.abortClicked.emit)
+        self.voiceCard.modeClicked.connect(self.modeClicked.emit)
+        
+        # 文本输入卡片信号 - 直接转发到对外信号
+        self.textCard.textSent.connect(self.textSent.emit)
+        
+        # 内部信号处理
         self.voiceCard.manualPressed.connect(self._onManualPressed)
         self.voiceCard.manualReleased.connect(self._onManualReleased)
         self.voiceCard.autoClicked.connect(self._onAutoClicked)
         self.voiceCard.abortClicked.connect(self._onAbortClicked)
         self.voiceCard.modeClicked.connect(self._onModeClicked)
-        
-        # 文本输入卡片信号
         self.textCard.textSent.connect(self._onTextSent)
         
         # 主题变化信号

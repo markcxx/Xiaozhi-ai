@@ -458,8 +458,8 @@ class Application:
         logger.debug("设置显示界面类型: %s", mode)
 
         if mode == "gui":
-            from app.view.display.gui_display import GuiDisplay
-            self.display = GuiDisplay()
+            from app.view.main_window import Window
+            self.display = Window()
             self._setup_gui_callbacks()
         else:
             from app.view.display.cli_display import CliDisplay
@@ -1528,7 +1528,7 @@ class Application:
         初始化快捷键管理器.
         """
         try:
-            from app.view.views.components.shortcut_manager import (
+            from app.components.shortcut_manager import (
                 start_global_shortcuts_async,
             )
 
