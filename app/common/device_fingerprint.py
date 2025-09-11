@@ -9,7 +9,7 @@ import machineid
 import psutil
 
 from app.common.logging_config import get_logger
-from app.common.path_manager import find_config_dir
+from app.common.path_manager import path_manager
 
 # 获取日志记录器
 logger = get_logger(__name__)
@@ -50,16 +50,12 @@ class DeviceFingerprint:
         """
         初始化文件路径.
         """
-        config_dir = find_config_dir()
-        if config_dir:
-            self.efuse_file = config_dir / "efuse.json"
-            logger.debug(f"使用配置目录: {config_dir}")
-        else:
-            # 备用方案：使用相对路径并确保目录存在
-            config_path = Path("config")
-            config_path.mkdir(parents=True, exist_ok=True)
-            self.efuse_file = config_path / "efuse.json"
-            logger.info(f"创建配置目录: {config_path.absolute()}")
+        # 使用用户配置目录下的激活配置目录
+        config_dir = path_manager.get_activation_config_dir()
+        path_manager.ensure_dir(config_dir)
+        self.efuse_file = path_manager.get_efuse_file()
+        logger.debug(f"使用激活配置目录: {config_dir}")
+        logger.debug(f"efuse文件路径: {self.efuse_file}")
 
     def get_hostname(self) -> str:
         """

@@ -117,7 +117,8 @@ class SystemInitializer:
         logger.info(f"本地激活状态: {'已激活' if is_activated else '未激活'}")
 
         # 验证efuse.json文件是否完整
-        efuse_file = Path("config/efuse.json")
+        from app.common.path_manager import path_manager
+        efuse_file = path_manager.get_efuse_file()
         if efuse_file.exists():
             logger.info(f"efuse.json文件位置: {efuse_file.absolute()}")
             with open(efuse_file, "r", encoding="utf-8") as f:

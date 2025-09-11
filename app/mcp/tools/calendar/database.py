@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from app.common.logging_config import get_logger
-from app.common.path_manager import get_user_data_dir
+from app.common.path_manager import get_cache_dir
 
 logger = get_logger(__name__)
 
@@ -18,8 +18,8 @@ def _get_database_file_path() -> str:
     """
     获取数据库文件路径，确保在可写目录中.
     """
-    data_dir = get_user_data_dir()
-    database_file = str(data_dir / "calendar.db")
+    cache_dir = get_cache_dir()
+    database_file = str(cache_dir / "calendar.db")
     logger.debug(f"使用数据库文件路径: {database_file}")
     return database_file
 

@@ -29,7 +29,7 @@ class ConfigManager:
         },
         "WAKE_WORD_OPTIONS": {
             "USE_WAKE_WORD": True,
-            "MODEL_PATH": "models",
+            "MODEL_PATH": "app/resource/models",
             "NUM_THREADS": 4,
             "PROVIDER": "cpu",
             "MAX_ACTIVE_PATHS": 2,
@@ -122,8 +122,8 @@ class ConfigManager:
         """
         project_root = path_manager.get_project_root()
 
-        # 创建 models 目录
-        models_dir = project_root / "models"
+        # 确保 app/resource/models 目录存在
+        models_dir = path_manager.get_app_resource_dir() / "models"
         if not models_dir.exists():
             models_dir.mkdir(parents=True, exist_ok=True)
             logger.info(f"创建模型目录: {models_dir.absolute()}")

@@ -8,12 +8,11 @@ def setup_logging():
     """
     配置日志系统.
     """
-    from .path_manager import get_project_root
+    from .path_manager import get_cache_dir
 
-    # 使用resource_finder获取项目根目录并创建logs目录
-    project_root = get_project_root()
-    log_dir = project_root / "logs"
-    log_dir.mkdir(exist_ok=True)
+    # 使用缓存目录存储日志文件
+    log_dir = get_cache_dir()
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # 日志文件路径
     log_file = log_dir / "app.log"
