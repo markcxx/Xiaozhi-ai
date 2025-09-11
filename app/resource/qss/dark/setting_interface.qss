@@ -1,0 +1,60 @@
+/* 设置界面样式 - 深色主题 */
+SettingInterface {
+    background-color: transparent;
+    border: none;
+}
+
+#scrollWidget {
+    background-color: transparent;
+    border: none;
+}
+
+#settingLabel {
+    font: 28px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    color: #ffffff;
+    background-color: transparent;
+    border: none;
+}
+
+/* 分段控件样式 */
+SegmentedWidget {
+    background-color: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 6px;
+}
+
+/* 设置卡片组样式 */
+SettingCardGroup {
+    background-color: #1e1e1e;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    margin: 8px 0;
+}
+
+/* 设置卡片样式 */
+SettingCard {
+    background-color: #1e1e1e;
+    border: none;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+SettingCard:hover {
+    background-color: #2a2a2a;
+}
+
+/* 按钮样式 */
+PushButton {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+PushButton:hover {
+    background-color: #106ebe;
+}
+
+PushButton:pressed {
+    background-color: #005a9e;
+}

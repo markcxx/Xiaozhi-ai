@@ -1,0 +1,71 @@
+/* 主页界面样式 - 浅色主题 */
+
+/* 滚动区域样式 */
+ScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+/* 主页界面背景 */
+HomeInterface {
+    background-color: transparent;
+    border: none;
+}
+
+/* 滚动内容区域 */
+#scrollWidget {
+    background-color: transparent;
+    border: none;
+}
+
+/* 表情显示区域 */
+EmotionWidget {
+    background-color: transparent;
+    border: none;
+}
+
+/* 表情卡片样式 */
+EmotionCard {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* 状态文本卡片样式 */
+StatusTextCard {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* 语音控制卡片样式 */
+VoiceControlCard {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* 文本输入卡片样式 */
+TextInputCard {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* 卡片标题样式 */
+CaptionLabel {
+    color: rgb(147, 155, 166);
+    font-weight: 500;
+}
+
+/* 状态标签样式 */
+SubtitleLabel {
+    color: rgb(32, 32, 32);
+    font-weight: 600;
+}
+
+/* 正文标签样式 */
+BodyLabel {
+    color: rgb(96, 96, 96);
+    font-weight: 400;
+}

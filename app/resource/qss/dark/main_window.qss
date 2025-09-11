@@ -1,0 +1,17 @@
+/* 主窗口样式 - 深色主题 */
+
+/* 窗口背景 */
+Window {
+    background-color: rgb(32, 32, 32);
+}
+
+/* 导航栏样式 */
+NavigationInterface {
+    background-color: rgb(39, 39, 39);
+    border-right: 1px solid rgb(50, 50, 50);
+}
+
+/* 标题栏样式 */
+TitleBar {
+    background-color: transparent;
+}
