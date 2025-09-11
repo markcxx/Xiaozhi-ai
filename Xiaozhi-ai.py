@@ -44,7 +44,6 @@ async def start_app() -> int:
     """
     启动应用的统一入口（在已有事件循环中执行）.
     """
-    logger.info("启动小智AI客户端")
 
     # 处理激活流程
     activation_success = await handle_activation()
@@ -60,8 +59,15 @@ async def start_app() -> int:
 def main():
     """主函数"""
     exit_code = 1
+    loop = None
+    qt_app = None
+    
     try:
         setup_logging()
+        
+        # 抑制nanobind警告
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module="nanobind")
         
         # 启用高DPI缩放
         QApplication.setHighDpiScaleFactorRoundingPolicy(
@@ -76,19 +82,41 @@ def main():
         # 创建qasync事件循环
         loop = qasync.QEventLoop(qt_app)
         asyncio.set_event_loop(loop)
-        logger.info("已创建qasync事件循环")
 
         # 运行应用
         with loop:
-            exit_code = loop.run_until_complete(start_app())
+            try:
+                exit_code = loop.run_until_complete(start_app())
+            except RuntimeError as e:
+                if "Event loop stopped" in str(e):
+                    exit_code = 0
+                else:
+                    raise
 
     except KeyboardInterrupt:
-        logger.info("程序被用户中断")
         exit_code = 0
     except Exception as e:
-        logger.error(f"程序异常退出: {e}", exc_info=True)
         exit_code = 1
     finally:
+        # 优雅关闭
+        try:
+            if loop and not loop.is_closed():
+                # 取消所有待处理的任务
+                pending = asyncio.all_tasks(loop)
+                for task in pending:
+                    task.cancel()
+                
+                # 等待任务取消完成
+                if pending:
+                    loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+                
+                loop.close()
+        except Exception:
+            pass
+        
+        import gc
+        gc.collect()
+        
         sys.exit(exit_code)
 
 

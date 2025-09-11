@@ -11,6 +11,8 @@ cache/
 models/
 assets/
 .trae/
+VidFlowDesktop/
+pyqt5-fluent-example/
 
 # Python
 __pycache__/
