@@ -3,7 +3,7 @@ import uuid
 from typing import Any, Dict
 
 from app.common.logging_config import get_logger
-from app.common.resource_finder import resource_finder
+from app.common.path_manager import path_manager
 
 logger = get_logger(__name__)
 
@@ -105,14 +105,10 @@ class ConfigManager:
         """
         初始化配置文件路径.
         """
-        # 使用resource_finder查找或创建配置目录
-        self.config_dir = resource_finder.find_config_dir()
-        if not self.config_dir:
-            # 如果找不到配置目录，在项目根目录下创建
-            project_root = resource_finder.get_project_root()
-            self.config_dir = project_root / "config"
-            self.config_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"创建配置目录: {self.config_dir.absolute()}")
+        # 使用激活配置目录
+        self.config_dir = path_manager.get_activation_config_dir()
+        path_manager.ensure_dir(self.config_dir)
+        logger.info(f"使用激活配置目录: {self.config_dir.absolute()}")
 
         self.config_file = self.config_dir / "config.json"
 
@@ -124,7 +120,7 @@ class ConfigManager:
         """
         确保必要的目录存在.
         """
-        project_root = resource_finder.get_project_root()
+        project_root = path_manager.get_project_root()
 
         # 创建 models 目录
         models_dir = project_root / "models"
@@ -133,25 +129,23 @@ class ConfigManager:
             logger.info(f"创建模型目录: {models_dir.absolute()}")
 
         # 创建 cache 目录
-        cache_dir = project_root / "cache"
-        if not cache_dir.exists():
-            cache_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"创建缓存目录: {cache_dir.absolute()}")
+        cache_dir = path_manager.get_cache_dir()
+        path_manager.ensure_dir(cache_dir)
+        logger.info(f"创建缓存目录: {cache_dir.absolute()}")
 
     def _load_config(self) -> Dict[str, Any]:
         """
         加载配置文件，如果不存在则创建.
         """
         try:
-            # 首先尝试使用resource_finder查找配置文件
-            config_file_path = resource_finder.find_file("config/config.json")
-
-            if config_file_path:
-                logger.debug(f"使用resource_finder找到配置文件: {config_file_path}")
+            # 使用激活配置文件路径
+            config_file_path = path_manager.get_activation_config_file()
+            if config_file_path and config_file_path.exists():
+                logger.debug(f"使用激活配置文件: {config_file_path}")
                 config = json.loads(config_file_path.read_text(encoding="utf-8"))
                 return self._merge_configs(self.DEFAULT_CONFIG, config)
 
-            # 如果resource_finder没找到，尝试使用实例变量中的路径
+            # 如果激活配置文件不存在，尝试使用实例变量中的路径
             if self.config_file.exists():
                 logger.debug(f"使用实例路径找到配置文件: {self.config_file}")
                 config = json.loads(self.config_file.read_text(encoding="utf-8"))

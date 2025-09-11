@@ -9,7 +9,7 @@ import sherpa_onnx
 from app.common.constants import AudioConfig
 from app.common.config_manager import ConfigManager
 from app.common.logging_config import get_logger
-from app.common.resource_finder import resource_finder
+from app.common.path_manager import path_manager
 
 logger = get_logger(__name__)
 
@@ -57,7 +57,7 @@ class WakeWordDetector:
         """
         # 模型路径配置
         model_path = config.get_config("WAKE_WORD_OPTIONS.MODEL_PATH", "models")
-        self.model_dir = resource_finder.find_directory(model_path)
+        self.model_dir = path_manager.find_directory(model_path)
 
         if self.model_dir is None:
             # 兜底方案：尝试直接使用路径

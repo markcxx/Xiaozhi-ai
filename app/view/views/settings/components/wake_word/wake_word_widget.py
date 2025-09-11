@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
 
 from app.common.config_manager import ConfigManager
 from app.common.logging_config import get_logger
-from app.common.resource_finder import get_project_root, resource_finder
+from app.common.path_manager import get_project_root, path_manager
 
 
 class WakeWordWidget(QWidget):
@@ -126,13 +126,13 @@ class WakeWordWidget(QWidget):
         try:
             current_path = self._get_text_value("model_path_edit")
             if not current_path:
-                # 使用resource_finder查找默认models目录
-                models_dir = resource_finder.find_models_dir()
+                # 使用path_manager查找默认models目录
+                models_dir = path_manager.find_directory("models")
                 if models_dir:
                     current_path = str(models_dir)
                 else:
                     # 如果找不到，使用项目根目录下的models
-                    project_root = resource_finder.get_project_root()
+                    project_root = get_project_root()
                     current_path = str(project_root / "models")
             
             selected_path = QFileDialog.getExistingDirectory(

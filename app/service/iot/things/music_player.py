@@ -11,7 +11,7 @@ from src.constants.constants import AudioConfig
 from ...mcp.tools.music.qt_music_player import get_music_player
 from src.iot.thing import Parameter, Thing, ValueType
 from src.utils.logging_config import get_logger
-from src.utils.resource_finder import get_project_root
+from app.common.path_manager import get_project_root
 
 logger = get_logger(__name__)
 

@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
 )
 
 from app.view.display.base_display import BaseDisplay
-from app.common.resource_finder import find_assets_dir
+from app.common.path_manager import find_assets_dir
 
 
 # 创建兼容的元类

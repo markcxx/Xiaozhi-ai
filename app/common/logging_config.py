@@ -8,7 +8,7 @@ def setup_logging():
     """
     配置日志系统.
     """
-    from .resource_finder import get_project_root
+    from .path_manager import get_project_root
 
     # 使用resource_finder获取项目根目录并创建logs目录
     project_root = get_project_root()

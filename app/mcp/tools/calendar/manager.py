@@ -277,7 +277,7 @@ class CalendarManager:
         从旧的JSON文件迁移数据（如果存在）
         """
         # 检查项目根目录中的旧JSON文件
-        from app.common.resource_finder import get_project_root, get_user_cache_dir
+        from app.common.path_manager import get_project_root, get_user_cache_dir
 
         try:
             project_root = get_project_root()

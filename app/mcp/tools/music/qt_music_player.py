@@ -16,7 +16,7 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 from app.common.constants import AudioConfig
 from app.common.logging_config import get_logger
-from app.common.resource_finder import get_user_cache_dir
+from app.common.path_manager import get_user_cache_dir
 
 # 尝试导入音乐元数据库
 try:

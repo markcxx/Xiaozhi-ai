@@ -113,7 +113,7 @@ def get_search_paths(system: PLATFORM, arch_name: str) -> List[Tuple[Path, str]]
     """
     获取库文件搜索路径列表（使用统一的资源查找器）
     """
-    from .resource_finder import find_libs_dir, get_project_root
+    from .path_manager import find_libs_dir, get_project_root
 
     lib_name = cast(str, get_lib_name(system))
 
@@ -202,7 +202,7 @@ def copy_opus_to_project(system_lib_path):
     """
     将系统库复制到项目目录.
     """
-    from .resource_finder import get_project_root
+    from .path_manager import get_project_root
 
     system, arch_name = get_system_info()
 

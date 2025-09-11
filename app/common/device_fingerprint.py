@@ -9,7 +9,7 @@ import machineid
 import psutil
 
 from app.common.logging_config import get_logger
-from app.common.resource_finder import find_config_dir
+from app.common.path_manager import find_config_dir
 
 # 获取日志记录器
 logger = get_logger(__name__)

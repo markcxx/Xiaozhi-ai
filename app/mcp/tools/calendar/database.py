@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from app.common.logging_config import get_logger
-from app.common.resource_finder import get_user_data_dir
+from app.common.path_manager import get_user_data_dir
 
 logger = get_logger(__name__)
 
