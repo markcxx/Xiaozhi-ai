@@ -16,7 +16,7 @@
 
 ## 📖 项目简介
 
-XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Microsoft Fluent Design 设计语言，为用户提供优雅、直观的交互体验。该项目基于 [py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) 进行二次开发，将原始项目重构为符合现代桌面应用标准的 Fluent 风格程序。
+XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Microsoft Fluent Design 设计语言，为用户提供优雅、直观的交互体验。项目基于 [py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) 进行二次开发，将原始项目重构为符合现代桌面应用标准的 Fluent 风格程序。
 
 ## 📸 应用截图
 
@@ -160,9 +160,7 @@ XiaoZhi-ai/
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证，详见 [MIT-LICENSE](MIT-LICENSE) 文件。
-
-**注意**: `LICENSE.txt` 文件是为安装包制作的最终用户许可协议(EULA)，与开源许可证不同。
+本项目采用 MIT 许可证，详见 [LICENSE](LICENSE) 文件。
 
 ## 🙏 致谢
 
@@ -179,7 +177,7 @@ XiaoZhi-ai/
 
 ## 🔄 更新日志
 
-### v1.0.0 (2025-01-XX)
+### v1.0.0 (2025-09-12)
 
 - 🎉 首个正式版本发布
 - ✨ 完整的 Fluent Design 界面重构
