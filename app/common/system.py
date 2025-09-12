@@ -19,7 +19,7 @@ class SystemConstants:
     """
 
     # 应用信息
-    APP_NAME = "py-xiaozhi"
+    APP_NAME = "Xiaozhi-ai"
     APP_VERSION = "2.0.0"
     BOARD_TYPE = "bread-compact-wifi"
 

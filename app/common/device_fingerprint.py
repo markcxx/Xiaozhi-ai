@@ -471,6 +471,15 @@ class DeviceFingerprint:
             logger.error(f"生成HMAC签名失败: {e}")
             return None
 
+    def generate_hmac_signature(self, challenge: str) -> str:
+        """
+        生成HMAC签名（兼容demo接口）
+        """
+        result = self.generate_hmac(challenge)
+        if not result:
+            raise ValueError("HMAC密钥不存在或生成失败")
+        return result
+
     @classmethod
     def get_instance(cls) -> "DeviceFingerprint":
         """

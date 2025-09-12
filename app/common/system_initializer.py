@@ -332,51 +332,25 @@ class SystemInitializer:
 
     async def _run_gui_activation(self) -> Dict:
         """运行GUI激活流程.
+        
+        注意：不再使用独立的激活窗口，激活功能已集成到设置界面中。
+        程序可以正常启动，用户可以在设置界面中进行激活操作。
 
         Returns:
             Dict: 激活结果
         """
-        try:
-            from app.view.views.activation.activation_window import ActivationWindow
-
-            # 创建激活窗口
-            activation_window = ActivationWindow(self)
-
-            # 创建Future来等待激活完成
-            activation_future = asyncio.Future()
-
-            # 设置激活完成回调
-            def on_activation_completed(success: bool):
-                if not activation_future.done():
-                    activation_future.set_result(success)
-
-            # 设置窗口关闭回调
-            def on_window_closed():
-                if not activation_future.done():
-                    activation_future.set_result(False)
-
-            # 连接信号
-            activation_window.activation_completed.connect(on_activation_completed)
-            activation_window.window_closed.connect(on_window_closed)
-
-            # 显示激活窗口
-            activation_window.show()
-
-            # 等待激活完成
-            activation_success = await activation_future
-
-            # 关闭窗口
-            activation_window.close()
-
-            return {
-                "is_activated": activation_success,
-                "device_fingerprint": self.device_fingerprint,
-                "config_manager": self.config_manager,
-            }
-
-        except Exception as e:
-            logger.error(f"GUI激活流程异常: {e}", exc_info=True)
-            return {"is_activated": False, "error": str(e)}
+        logger.info("激活功能已集成到设置界面，程序将正常启动")
+        
+        # 检查当前激活状态
+        device_fingerprint = DeviceFingerprint.get_instance()
+        is_activated = device_fingerprint.is_activated()
+        
+        return {
+            "is_activated": is_activated,
+            "device_fingerprint": self.device_fingerprint,
+            "config_manager": self.config_manager,
+            "message": "激活功能已集成到设置界面，请在设置中进行激活操作"
+        }
 
     async def _run_cli_activation(self) -> Dict:
         """运行CLI激活流程.

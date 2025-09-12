@@ -48,8 +48,8 @@ async def start_app() -> int:
     # 处理激活流程
     activation_success = await handle_activation()
     if not activation_success:
-        logger.error("设备激活失败，程序退出")
-        return 1
+        logger.info("设备未激活，程序正常启动，用户可在设置界面中进行激活")
+        # 不再因为未激活而退出程序，允许正常启动
 
     # 创建并启动应用程序
     app = Application.get_instance()

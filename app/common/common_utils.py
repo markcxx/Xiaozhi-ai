@@ -324,9 +324,4 @@ def handle_verification_code(text: str) -> None:
         return
 
     copy_to_clipboard(code)
-
-    from app.common.config_manager import ConfigManager
-
-    config = ConfigManager.get_instance()
-    ota_url = config.get_config("SYSTEM_OPTIONS.NETWORK.AUTHORIZATION_URL", "")
-    open_url(ota_url)
+    # 不再自动打开浏览器，用户需要手动将验证码发送给开发者

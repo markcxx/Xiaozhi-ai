@@ -138,6 +138,10 @@ class Application:
 
         # MCP服务器
         self.mcp_server = McpServer.get_instance()
+        
+        # 激活状态检测
+        self._activation_check_task = None
+        self._last_activation_status = None
 
         # 消息处理器映射
         self._message_handlers = {
@@ -315,6 +319,9 @@ class Application:
 
         # 初始化快捷键管理器
         await self._initialize_shortcuts()
+        
+        # 启动激活状态监控
+        await self._start_activation_monitor()
 
         logger.info("应用程序组件初始化完成")
 
@@ -1350,6 +1357,9 @@ class Application:
             self._shutdown_event.set()
 
         try:
+            # 1. 停止激活状态监控
+            await self._stop_activation_monitor()
+            
             # 2. 关闭唤醒词检测器
             await self._safe_close_resource(
                 self.wake_word_detector, "唤醒词检测器", "stop"
@@ -1538,4 +1548,46 @@ class Application:
             else:
                 logger.warning("快捷键管理器初始化失败")
         except Exception as e:
-            logger.error(f"初始化快捷键管理器失败: {e}", exc_info=True)
+            logger.error(f"初始化快捷键管理器失败: {e}")
+                
+    async def _start_activation_monitor(self):
+        """启动激活状态监控"""
+        try:
+            logger.info("启动激活状态监控")
+            self._activation_check_task = asyncio.create_task(self._activation_check_loop())
+        except Exception as e:
+            logger.error(f"启动激活状态监控失败: {e}")
+    
+    async def _activation_check_loop(self):
+        """激活状态检测循环"""
+        from app.common.device_fingerprint import DeviceFingerprint
+        
+        while self.running:
+            try:
+                device_fingerprint = DeviceFingerprint.get_instance()
+                current_status = device_fingerprint.is_activated()
+                
+                # 如果激活状态发生变化
+                if self._last_activation_status != current_status:
+                    self._last_activation_status = current_status
+                    if current_status:
+                        logger.info("检测到设备已激活")
+                    else:
+                        logger.info("检测到设备未激活")
+                
+                # 每30秒检测一次
+                await asyncio.sleep(30)
+                
+            except Exception as e:
+                logger.error(f"激活状态检测异常: {e}")
+                await asyncio.sleep(30)
+    
+    async def _stop_activation_monitor(self):
+        """停止激活状态监控"""
+        if self._activation_check_task and not self._activation_check_task.done():
+            self._activation_check_task.cancel()
+            try:
+                await self._activation_check_task
+            except asyncio.CancelledError:
+                pass
+            logger.info("激活状态监控已停止")

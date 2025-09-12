@@ -1,18 +1,19 @@
 import asyncio
 import json
+import socket
 from typing import Optional
 
 import aiohttp
 
 from app.common.common_utils import handle_verification_code
-from app.common.system import DeviceFingerprint
+from app.common.device_fingerprint import DeviceFingerprint
 from app.common.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
 class DeviceActivator:
-    """设备激活管理器 - 全异步版本"""
+    """设备激活管理器 - 基于py-xiaozhi逻辑"""
 
     def __init__(self, config_manager):
         """
@@ -85,8 +86,96 @@ class DeviceActivator:
         """
         return self.device_fingerprint.generate_hmac(challenge)
 
+    def get_activation_data(self) -> Optional[dict]:
+        """获取OTA配置数据，从中提取激活信息 - 基于py-xiaozhi逻辑"""
+        try:
+            # 确保设备身份信息已创建
+            self.device_fingerprint.ensure_device_identity()
+            
+            # 确保CLIENT_ID和DEVICE_ID存在
+            self.config_manager.initialize_client_id()
+            self.config_manager.initialize_device_id_from_fingerprint(self.device_fingerprint)
+            
+            # 获取OTA URL
+            ota_url = self.config_manager.get_config("SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL", "https://api.tenclass.net/xiaozhi/ota/")
+            
+            # 获取客户端ID和设备ID
+            client_id = self.config_manager.get_config("SYSTEM_OPTIONS.CLIENT_ID")
+            device_id = self.config_manager.get_config("SYSTEM_OPTIONS.DEVICE_ID")
+            
+            # 设置请求头（Device-Id必须使用MAC地址）
+            mac_address = self.device_fingerprint.get_mac_address() or "unknown"
+            headers = {
+                "Device-Id": mac_address,
+                "Client-Id": client_id,
+                "Content-Type": "application/json",
+                "User-Agent": "bread-compact-wifi/py-xiaozhi-2.0.0",
+                "Accept-Language": "zh-CN",
+            }
+            
+            # 根据激活版本决定是否添加Activation-Version头部
+            activation_version = self.config_manager.get_config("SYSTEM_OPTIONS.NETWORK.ACTIVATION_VERSION", "v2")
+            if activation_version == "v2":
+                headers["Activation-Version"] = "2.0.0"
+            
+            # 构建请求payload
+            payload = self._build_ota_payload()
+            
+            # 调试输出
+            print(f"\n=== OTA请求调试信息 ===")
+            print(f"URL: {ota_url}")
+            print(f"Headers: {headers}")
+            print(f"Payload: {payload}")
+            print(f"========================\n")
+            
+            # 强制使用requests发送POST请求获取OTA配置
+            import requests
+            response = requests.post(ota_url, headers=headers, json=payload, timeout=30)
+            
+            print(f"OTA响应状态码: {response.status_code}")
+            print(f"OTA响应内容: {response.text}")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                return response_data
+            else:
+                print(f"获取OTA配置失败: HTTP {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"获取激活数据失败: {e}")
+            return None
+    
+    def _build_ota_payload(self) -> dict:
+        """构建OTA请求payload"""
+        try:
+            # 获取本地IP
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                local_ip = s.getsockname()[0]
+        except Exception:
+            local_ip = "127.0.0.1"
+        
+        # 获取MAC地址和HMAC密钥
+        mac_address = self.device_fingerprint.get_mac_address() or "unknown"
+        hmac_key = self.device_fingerprint.get_hmac_key()
+        elf_sha256 = hmac_key if hmac_key else "unknown"
+        
+        return {
+            "application": {
+                "version": "2.0.0",
+                "elf_sha256": elf_sha256,
+            },
+            "board": {
+                "type": "bread-compact-wifi",
+                "name": "py-xiaozhi",
+                "ip": local_ip,
+                "mac": mac_address,
+            },
+        }
+
     async def process_activation(self, activation_data: dict) -> bool:
-        """异步处理激活流程.
+        """异步处理激活流程 - 基于py-xiaozhi逻辑.
 
         Args:
             activation_data: 包含激活信息的字典，至少应该包含challenge和code
@@ -157,7 +246,7 @@ class DeviceActivator:
             return False
 
     async def activate(self, challenge: str, code: str = None) -> bool:
-        """异步执行激活流程.
+        """异步执行激活流程 - 基于py-xiaozhi逻辑.
 
         Args:
             challenge: 服务器发送的挑战字符串
@@ -299,10 +388,13 @@ class DeviceActivator:
                                 # 计数连续相同错误
                                 if "Device not found" in error_msg:
                                     error_count += 1
-                                    if error_count >= 5 and error_count % 5 == 0:
-                                        self.logger.warning(
-                                            "\n提示: 如果错误持续出现，可能需要在网站上刷新页面获取新验证码\n"
+                                    if error_count >= 5:
+                                        self.logger.error(
+                                            "连续5次设备未找到错误，可能设备未正确注册"
                                         )
+                                        return False
+                                else:
+                                    error_count = 0  # 重置错误计数
 
                                 # 使用可取消的等待
                                 await asyncio.sleep(retry_interval)
