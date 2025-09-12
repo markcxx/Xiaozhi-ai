@@ -17,6 +17,7 @@ from ..common.config import config
 from ..common.style_sheet import setStyleSheet
 from ..common.signal_bus import signalBus
 from ..common import resource_rc
+from ..common.common_utils import copy_to_clipboard
 
 
 class SettingInterface(ScrollArea):
@@ -378,19 +379,10 @@ class ActivationSettingsPage(QWidget):
                     verification_code = activation_info["code"]
                     
                     # 复制到剪贴板
-                    from ..common.common_utils import copy_to_clipboard
                     if copy_to_clipboard(verification_code):
                         InfoBar.success(
                             self.tr('验证码已生成'),
-                            self.tr(f'验证码 {verification_code} 已复制到剪贴板\n请将此验证码发送给开发者完成激活'),
-                            position=InfoBarPosition.BOTTOM_RIGHT,
-                            duration=8000,
-                            parent=self.window()
-                        )
-                    else:
-                        InfoBar.warning(
-                            self.tr('复制失败'),
-                            self.tr(f'验证码: {verification_code}\n请手动复制并发送给开发者完成激活'),
+                            self.tr(f'验证码 {verification_code} 已复制到剪贴板'),
                             position=InfoBarPosition.BOTTOM_RIGHT,
                             duration=8000,
                             parent=self.window()

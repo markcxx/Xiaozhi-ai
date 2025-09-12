@@ -228,15 +228,14 @@ class DeviceActivator:
             print("==================\n")
             handle_verification_code(text)
 
-            # 使用语音播放验证码
-            try:
-                # 在非阻塞的线程中播放语音
-                from app.common.common_utils import play_audio_nonblocking
-
-                play_audio_nonblocking(text)
-                self.logger.info("正在播放验证码语音提示")
-            except Exception as e:
-                self.logger.error(f"播放验证码语音失败: {e}")
+            # 语音播放已禁用
+            # try:
+            #     # 在非阻塞的线程中播放语音
+            #     from app.common.common_utils import play_audio_nonblocking
+            #     play_audio_nonblocking(text)
+            #     self.logger.info("正在播放验证码语音提示")
+            # except Exception as e:
+            #     self.logger.error(f"播放验证码语音失败: {e}")
 
             # 尝试激活设备，传递验证码信息
             return await self.activate(challenge, code)
@@ -323,18 +322,17 @@ class DeviceActivator:
                             f"尝试激活 (尝试 {attempt + 1}/{max_retries})..."
                         )
 
-                        # 每次重试时播放验证码（从第2次开始）
-                        if attempt > 0 and code:
-                            try:
-                                from app.common.common_utils import (
-                                    play_audio_nonblocking,
-                                )
-
-                                text = f".请登录到控制面板添加设备，输入验证码：{' '.join(code)}..."
-                                play_audio_nonblocking(text)
-                                self.logger.info(f"重试播放验证码: {code}")
-                            except Exception as e:
-                                self.logger.error(f"重试播放验证码失败: {e}")
+                        # 重试时的语音播放已禁用
+                        # if attempt > 0 and code:
+                        #     try:
+                        #         from app.common.common_utils import (
+                        #             play_audio_nonblocking,
+                        #         )
+                        #         text = f".请登录到控制面板添加设备，输入验证码：{' '.join(code)}..."
+                        #         play_audio_nonblocking(text)
+                        #         self.logger.info(f"重试播放验证码: {code}")
+                        #     except Exception as e:
+                        #         self.logger.error(f"重试播放验证码失败: {e}")
 
                         # 发送激活请求
                         async with session.post(
