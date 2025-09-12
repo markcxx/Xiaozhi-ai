@@ -14,7 +14,7 @@ args = [
     '--standalone',
     '--assume-yes-for-downloads',
     '--mingw64',
-    '--windows-icon-from-ico=D:/Code/xiaozhiAI/app/resource/images/LOGO.png',
+    '--windows-icon-from-ico=D:/Users/markchen.DESKTOP-SNGEVAJ/AppData/Local/Temp/icon.ico',
     '--enable-plugins=pyqt5',
     '--include-package=websockets',
     '--include-module=websockets.client',
