@@ -8,5 +8,33 @@
     <file>qss/dark/home_interface.qss</file>
     <file>qss/dark/setting_interface.qss</file>
     <file>qss/dark/main_window.qss</file>
+    
+    <!-- 图片资源 -->
+    <file>images/LOGO.png</file>
+    <file>images/icon.icns</file>
+    <file>images/icon.png</file>
+    
+    <!-- 表情gif资源 -->
+    <file>images/emojis/angry.gif</file>
+    <file>images/emojis/confident.gif</file>
+    <file>images/emojis/confused.gif</file>
+    <file>images/emojis/cool.gif</file>
+    <file>images/emojis/crying.gif</file>
+    <file>images/emojis/delicious.gif</file>
+    <file>images/emojis/embarrassed.gif</file>
+    <file>images/emojis/funny.gif</file>
+    <file>images/emojis/happy.gif</file>
+    <file>images/emojis/kissy.gif</file>
+    <file>images/emojis/laughing.gif</file>
+    <file>images/emojis/loving.gif</file>
+    <file>images/emojis/neutral.gif</file>
+    <file>images/emojis/relaxed.gif</file>
+    <file>images/emojis/sad.gif</file>
+    <file>images/emojis/shocked.gif</file>
+    <file>images/emojis/silly.gif</file>
+    <file>images/emojis/sleepy.gif</file>
+    <file>images/emojis/surprised.gif</file>
+    <file>images/emojis/thinking.gif</file>
+    <file>images/emojis/winking.gif</file>
   </qresource>
 </RCC>

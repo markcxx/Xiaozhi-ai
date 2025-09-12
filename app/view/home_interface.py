@@ -47,28 +47,34 @@ class EmotionCard(CardWidget):
         if emotionName in self._emotionCache:
             return self._emotionCache[emotionName]
         
-        # 构建表情文件路径
-        emotionDir = Path("app/resource/images/emojis")
+        # 使用Qt资源系统路径
         candidates = [
-            emotionDir / f"{emotionName}.gif",
-            emotionDir / f"{emotionName}.png",
-            emotionDir / f"{emotionName}.jpg"
+            f":/images/emojis/{emotionName}.gif",
+            f":/images/emojis/{emotionName}.png",
+            f":/images/emojis/{emotionName}.jpg"
         ]
         
-        # 查找存在的文件
-        found = next((p for p in candidates if p.exists()), None)
+        # 检查资源是否存在
+        from PyQt5.QtCore import QFile
+        found = None
+        for candidate in candidates:
+            if QFile.exists(candidate):
+                found = candidate
+                break
         
         # 如果没找到，尝试neutral
         if not found:
             neutralCandidates = [
-                emotionDir / "neutral.gif",
-                emotionDir / "neutral.png"
+                ":/images/emojis/neutral.gif",
+                ":/images/emojis/neutral.png"
             ]
-            found = next((p for p in neutralCandidates if p.exists()), None)
+            for candidate in neutralCandidates:
+                if QFile.exists(candidate):
+                    found = candidate
+                    break
         
-        path = str(found) if found else None
-        self._emotionCache[emotionName] = path
-        return path
+        self._emotionCache[emotionName] = found
+        return found
     
     def updateEmotion(self, emotionName: str):
         """更新表情显示"""

@@ -76,6 +76,9 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         
         # 初始化系统托盘
         self.initSystemTray()
+        
+        # 检查设备激活状态
+        self.checkActivationStatus()
 
     def initNavigation(self):
         self.addSubInterface(self.homeInterface, FIF.HOME, 'Home')
@@ -115,6 +118,29 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
             
         self.systemTray = SystemTrayIcon(self)
         self.systemTray.show()
+    
+    def checkActivationStatus(self):
+        """检查设备激活状态"""
+        try:
+            from ..common.device_fingerprint import DeviceFingerprint
+            from qfluentwidgets import InfoBar, InfoBarPosition
+            
+            device_fingerprint = DeviceFingerprint.get_instance()
+            
+            # 检查设备是否已激活
+            if not device_fingerprint.is_activated():
+                # 显示未激活提示
+                InfoBar.warning(
+                    title='设备未激活',
+                    content='设备尚未激活，请前往设置界面生成验证码完成激活',
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP,
+                    duration=8000,
+                    parent=self
+                )
+        except Exception as e:
+            print(f"检查激活状态失败: {e}")
 
     def showMessageBox(self):
         w = MessageBox(
