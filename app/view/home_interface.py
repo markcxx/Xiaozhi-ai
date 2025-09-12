@@ -338,7 +338,6 @@ class HomeInterface(ScrollArea):
         self.voiceCard.autoClicked.connect(self._onAutoClicked)
         self.voiceCard.abortClicked.connect(self._onAbortClicked)
         self.voiceCard.modeClicked.connect(self._onModeClicked)
-        self.textCard.textSent.connect(self._onTextSent)
         
         # 主题变化信号
         signalBus.themeChangedSig.connect(self._refreshInterface)
@@ -391,16 +390,6 @@ class HomeInterface(ScrollArea):
                 duration=1500,
                 parent=self.window()
             )
-    
-    def _onTextSent(self, text: str):
-        """文字发送"""
-        InfoBar.success(
-            title="文字发送",
-            content=f"已发送: {text}",
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self.window()
-        )
     
     # 公共接口方法
     def updateStatus(self, status: str, connected: bool = True):

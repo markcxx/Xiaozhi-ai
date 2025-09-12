@@ -4,8 +4,6 @@
 """
 
 import asyncio
-import shutil
-import tempfile
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -15,7 +13,6 @@ import requests
 from app.common.constants import AudioConfig
 from .qt_music_player import get_music_player
 from app.common.logging_config import get_logger
-from app.common.path_manager import get_user_cache_dir
 
 # 尝试导入音乐元数据库
 try:
@@ -132,11 +129,7 @@ class MusicPlayer:
         self.lyrics = []  # 歌词列表，格式为 [(时间, 文本), ...]
         self.current_lyric_index = -1  # 当前歌词索引
 
-        # 缓存目录设置 - 使用用户缓存目录确保可写
-        user_cache_dir = get_user_cache_dir()
-        self.cache_dir = user_cache_dir / "music"
-        self.temp_cache_dir = self.cache_dir / "temp"
-        self._init_cache_dirs()
+        # 移除缓存目录设置，改为直接在线播放
 
         # API配置
         self.config = {
@@ -152,16 +145,9 @@ class MusicPlayer:
             },
         }
 
-        # 清理临时缓存
-        self._clean_temp_cache()
-
         # 获取应用程序实例
         self.app = None
         self._initialize_app_reference()
-
-        # 本地歌单缓存
-        self._local_playlist = None
-        self._last_scan_time = 0
 
         logger.info("音乐播放器单例初始化完成")
 
@@ -195,237 +181,15 @@ class MusicPlayer:
             logger.warning(f"获取Application实例失败: {e}")
             self.app = None
 
-    def _init_cache_dirs(self):
-        """
-        初始化缓存目录.
-        """
-        try:
-            # 创建主缓存目录
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
-            # 创建临时缓存目录
-            self.temp_cache_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"音乐缓存目录初始化完成: {self.cache_dir}")
-        except Exception as e:
-            logger.error(f"创建缓存目录失败: {e}")
-            # 回退到系统临时目录
-            self.cache_dir = Path(tempfile.gettempdir()) / "xiaozhi_music_cache"
-            self.temp_cache_dir = self.cache_dir / "temp"
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
-            self.temp_cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def _clean_temp_cache(self):
-        """
-        清理临时缓存文件.
-        """
-        try:
-            # 清空临时缓存目录中的所有文件
-            for file_path in self.temp_cache_dir.glob("*"):
-                try:
-                    if file_path.is_file():
-                        file_path.unlink()
-                        logger.debug(f"已删除临时缓存文件: {file_path.name}")
-                except Exception as e:
-                    logger.warning(f"删除临时缓存文件失败: {file_path.name}, {e}")
 
-            logger.info("临时音乐缓存清理完成")
-        except Exception as e:
-            logger.error(f"清理临时缓存目录失败: {e}")
 
-    def _scan_local_music(self, force_refresh: bool = False) -> List[MusicMetadata]:
-        """
-        扫描本地音乐缓存，返回歌单.
-        """
-        current_time = time.time()
 
-        # 如果不强制刷新且缓存未过期（5分钟），直接返回缓存
-        if (
-            not force_refresh
-            and self._local_playlist is not None
-            and (current_time - self._last_scan_time) < 300
-        ):
-            return self._local_playlist
 
-        playlist = []
 
-        if not self.cache_dir.exists():
-            logger.warning(f"缓存目录不存在: {self.cache_dir}")
-            return playlist
 
-        # 查找所有音乐文件
-        music_files = []
-        for pattern in ["*.mp3", "*.m4a", "*.flac", "*.wav", "*.ogg"]:
-            music_files.extend(self.cache_dir.glob(pattern))
 
-        logger.debug(f"找到 {len(music_files)} 个音乐文件")
 
-        # 扫描每个文件
-        for file_path in music_files:
-            try:
-                metadata = MusicMetadata(file_path)
-
-                # 尝试提取元数据
-                if MUTAGEN_AVAILABLE:
-                    metadata.extract_metadata()
-
-                playlist.append(metadata)
-
-            except Exception as e:
-                logger.debug(f"处理音乐文件失败 {file_path.name}: {e}")
-
-        # 按艺术家和标题排序
-        playlist.sort(key=lambda x: (x.artist or "Unknown", x.title or x.filename))
-
-        # 更新缓存
-        self._local_playlist = playlist
-        self._last_scan_time = current_time
-
-        logger.info(f"扫描完成，找到 {len(playlist)} 首本地音乐")
-        return playlist
-
-    async def get_local_playlist(self, force_refresh: bool = False) -> dict:
-        """
-        获取本地音乐歌单.
-        """
-        try:
-            playlist = self._scan_local_music(force_refresh)
-
-            if not playlist:
-                return {
-                    "status": "info",
-                    "message": "本地缓存中没有音乐文件",
-                    "playlist": [],
-                    "total_count": 0,
-                }
-
-            # 格式化歌单，简洁格式方便 AI 读取
-            formatted_playlist = []
-            for metadata in playlist:
-                title = metadata.title or "未知标题"
-                artist = metadata.artist or "未知艺术家"
-                song_info = f"{title} - {artist}"
-                formatted_playlist.append(song_info)
-
-            return {
-                "status": "success",
-                "message": f"找到 {len(playlist)} 首本地音乐",
-                "playlist": formatted_playlist,
-                "total_count": len(playlist),
-            }
-
-        except Exception as e:
-            logger.error(f"获取本地歌单失败: {e}")
-            return {
-                "status": "error",
-                "message": f"获取本地歌单失败: {str(e)}",
-                "playlist": [],
-                "total_count": 0,
-            }
-
-    async def search_local_music(self, query: str) -> dict:
-        """
-        搜索本地音乐.
-        """
-        try:
-            playlist = self._scan_local_music()
-
-            if not playlist:
-                return {
-                    "status": "info",
-                    "message": "本地缓存中没有音乐文件",
-                    "results": [],
-                    "found_count": 0,
-                }
-
-            query = query.lower()
-            results = []
-
-            for metadata in playlist:
-                # 在标题、艺术家、文件名中搜索
-                searchable_text = " ".join(
-                    filter(
-                        None,
-                        [
-                            metadata.title,
-                            metadata.artist,
-                            metadata.album,
-                            metadata.filename,
-                        ],
-                    )
-                ).lower()
-
-                if query in searchable_text:
-                    title = metadata.title or "未知标题"
-                    artist = metadata.artist or "未知艺术家"
-                    song_info = f"{title} - {artist}"
-                    results.append(
-                        {
-                            "song_info": song_info,
-                            "file_id": metadata.file_id,
-                            "duration": metadata.format_duration(),
-                        }
-                    )
-
-            return {
-                "status": "success",
-                "message": f"在本地音乐中找到 {len(results)} 首匹配的歌曲",
-                "results": results,
-                "found_count": len(results),
-            }
-
-        except Exception as e:
-            logger.error(f"搜索本地音乐失败: {e}")
-            return {
-                "status": "error",
-                "message": f"搜索失败: {str(e)}",
-                "results": [],
-                "found_count": 0,
-            }
-
-    async def play_local_song_by_id(self, file_id: str) -> dict:
-        """
-        根据文件ID播放本地歌曲.
-        """
-        try:
-            # 构建文件路径
-            file_path = self.cache_dir / f"{file_id}.mp3"
-
-            if not file_path.exists():
-                # 尝试其他格式
-                for ext in [".m4a", ".flac", ".wav", ".ogg"]:
-                    alt_path = self.cache_dir / f"{file_id}{ext}"
-                    if alt_path.exists():
-                        file_path = alt_path
-                        break
-                else:
-                    return {"status": "error", "message": f"本地文件不存在: {file_id}"}
-
-            # 获取歌曲信息
-            metadata = MusicMetadata(file_path)
-            if MUTAGEN_AVAILABLE:
-                metadata.extract_metadata()
-
-            # 使用Qt播放器播放本地文件
-            result = await self.qt_player.play_local_file(str(file_path))
-            if result["status"] != "success":
-                return result
-
-            # 同步播放状态
-            self._sync_state_from_qt_player()
-
-            logger.info(f"开始播放本地音乐: {self.current_song}")
-
-            # 更新UI
-            if self.app and hasattr(self.app, "set_chat_message"):
-                await self._safe_update_ui(f"正在播放本地音乐: {self.current_song}")
-
-            return {
-                "status": "success",
-                "message": f"正在播放本地音乐: {self.current_song}",
-            }
-
-        except Exception as e:
-            logger.error(f"播放本地音乐失败: {e}")
-            return {"status": "error", "message": f"播放失败: {str(e)}"}
 
     # 属性getter方法
     async def get_current_song(self):
@@ -680,13 +444,8 @@ class MusicPlayer:
         播放指定URL.
         """
         try:
-            # 检查缓存或下载
-            file_path = await self._get_or_download_file(url)
-            if not file_path:
-                return False
-
-            # 使用Qt播放器播放本地文件
-            result = await self.qt_player.play_local_file(str(file_path))
+            # 直接使用Qt播放器播放在线URL
+            result = await self.qt_player.play_url(url)
             if result["status"] != "success":
                 return False
             

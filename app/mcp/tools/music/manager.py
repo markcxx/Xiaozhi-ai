@@ -55,10 +55,7 @@ class MusicToolsManager:
             # 注册获取状态工具
             self._register_get_status_tool(add_tool, PropertyList)
 
-            # 注册获取本地歌单工具
-            self._register_get_local_playlist_tool(
-                add_tool, PropertyList, Property, PropertyType
-            )
+            # 移除本地歌单工具，默认使用网络搜索模式
 
             self._initialized = True
             logger.info("[MusicManager] 音乐工具注册完成")
@@ -84,9 +81,11 @@ class MusicToolsManager:
         add_tool(
             (
                 "music_player.search_and_play",
-                "Search for a song and start playing it. Finds songs by name and "
-                "automatically starts playback. Use this to play specific songs "
-                "requested by the user.",
+                "Search for a song and start playing it online. Finds songs by name and "
+                "automatically starts streaming playback. When user provides both song title and artist, "
+                "use format 'song_title artist_name' as search keyword for better accuracy. "
+                "For example: '菊花台 周杰伦' or 'Shape of You Ed Sheeran'. "
+                "This tool uses network search and plays songs directly without downloading.",
                 search_props,
                 search_and_play_wrapper,
             )
@@ -231,47 +230,7 @@ class MusicToolsManager:
         )
         logger.debug("[MusicManager] 注册获取状态工具成功")
 
-    def _register_get_local_playlist_tool(
-        self, add_tool, PropertyList, Property, PropertyType
-    ):
-        """
-        注册获取本地歌单工具.
-        """
 
-        async def get_local_playlist_wrapper(args: Dict[str, Any]) -> str:
-            force_refresh = args.get("force_refresh", False)
-            result = await self._music_player.get_local_playlist(force_refresh)
-
-            if result.get("status") == "success":
-                playlist = result.get("playlist", [])
-                total_count = result.get("total_count", 0)
-
-                if playlist:
-                    playlist_text = f"本地音乐歌单 (共{total_count}首):\n"
-                    playlist_text += "\n".join(playlist)
-                    return playlist_text
-                else:
-                    return "本地缓存中没有音乐文件"
-            else:
-                return result.get("message", "获取本地歌单失败")
-
-        refresh_props = PropertyList(
-            [Property("force_refresh", PropertyType.BOOLEAN, default_value=False)]
-        )
-
-        add_tool(
-            (
-                "music_player.get_local_playlist",
-                "Get the local music playlist from cache. Shows all songs that have been "
-                "downloaded and cached locally. Returns songs in format 'Title - Artist'. "
-                "To play a song from this list, use search_and_play with just the song title "
-                "(not the full 'Title - Artist' format). For example: if the list shows "
-                "'菊花台 - 周杰伦', call search_and_play with song_name='菊花台'.",
-                refresh_props,
-                get_local_playlist_wrapper,
-            )
-        )
-        logger.debug("[MusicManager] 注册获取本地歌单工具成功")
 
     def _format_time(self, seconds: float) -> str:
         """

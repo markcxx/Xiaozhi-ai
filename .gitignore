@@ -13,6 +13,7 @@ assets/
 .trae/
 VidFlowDesktop/
 pyqt5-fluent-example/
+music_api.py
 
 # Python
 __pycache__/
