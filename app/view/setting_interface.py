@@ -10,10 +10,10 @@ from qfluentwidgets import (
     OptionsSettingCard, PushSettingCard, HyperlinkCard, PrimaryPushSettingCard,
     ComboBoxSettingCard, ExpandLayout, CustomColorSettingCard, RangeSettingCard,
     setTheme, setThemeColor, FluentIcon as FIF, InfoBar, TitleLabel, qconfig, InfoBarPosition,
-    BodyLabel
+    BodyLabel, MessageBox
 )
 
-from ..common.config import config
+from ..common.config import config, APP_NAME, VERSION, AUTHOR, COPYRIGHT, COPYYEAR, APP_URL, FALLBACK_URL, CONTACT_EMAIL, BLOG_URL, DONATE_URL
 from ..common.style_sheet import setStyleSheet
 from ..common.signal_bus import signalBus
 from ..common import resource_rc
@@ -289,19 +289,20 @@ class AboutAuthorPage(QWidget):
         self.aboutGroup = SettingCardGroup(self.tr('关于'), self)
         
         self.helpCard = HyperlinkCard(
-            "https://github.com/",
-            self.tr('打开帮助页面'),
+            APP_URL,
+            self.tr('打开项目主页'),
             FIF.HELP,
             self.tr('帮助'),
             self.tr('获取使用帮助和常见问题解答'),
             self.aboutGroup
         )
         
-        self.feedbackCard = PrimaryPushSettingCard(
+        self.feedbackCard = HyperlinkCard(
+            FALLBACK_URL,
             self.tr('提供反馈'),
             FIF.FEEDBACK,
             self.tr('提供反馈'),
-            self.tr('通过提供反馈帮助我们改进XiaoZhi AI'),
+            self.tr('通过提供反馈帮助我们改进') + f' {APP_NAME}',
             self.aboutGroup
         )
         
@@ -309,8 +310,25 @@ class AboutAuthorPage(QWidget):
             self.tr('检查更新'),
             FIF.INFO,
             self.tr('关于'),
-            '© ' + self.tr('版权所有') + ' 2024, XiaoZhi AI开发团队. ' +
-            self.tr('版本') + ' 1.0.0',
+            f'© {self.tr("版权所有")} {COPYYEAR}, {AUTHOR}. {self.tr("版本")} {VERSION}',
+            self.aboutGroup
+        )
+        
+        self.blogCard = HyperlinkCard(
+            BLOG_URL,
+            self.tr('访问博客'),
+            FIF.LINK,
+            self.tr('作者博客'),
+            self.tr('访问作者的个人博客'),
+            self.aboutGroup
+        )
+        
+        self.contactCard = HyperlinkCard(
+            f'mailto:{CONTACT_EMAIL}',
+            self.tr('发送邮件'),
+            FIF.MAIL,
+            self.tr('联系作者'),
+            f'{self.tr("邮箱")}: {CONTACT_EMAIL}',
             self.aboutGroup
         )
         
@@ -321,14 +339,15 @@ class AboutAuthorPage(QWidget):
         self.aboutGroup.addSettingCard(self.helpCard)
         self.aboutGroup.addSettingCard(self.feedbackCard)
         self.aboutGroup.addSettingCard(self.aboutCard)
+        self.aboutGroup.addSettingCard(self.blogCard)
+        self.aboutGroup.addSettingCard(self.contactCard)
         
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(0, 0, 0, 0)
         self.expandLayout.addWidget(self.aboutGroup)
     
     def __connectSignalToSlot(self):
-        self.feedbackCard.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl("https://github.com/")))
+        pass
 
     def tr(self, text):
         return text

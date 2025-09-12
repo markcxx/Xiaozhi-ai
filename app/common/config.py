@@ -14,8 +14,12 @@ APP_NAME = "XiaoZhi AI"
 VERSION = "1.0.0"
 AUTHOR = "markcxx"
 COPYRIGHT = "markcxx"
-APP_URL = "https://github.com/xiaozhi-ai"
-CONTACT_EMAIL = "contact@xiaozhi-ai.com"
+COPYYEAR = "2025"
+APP_URL = "https://github.com/markcxx/Xiaozhi-ai"
+FALLBACK_URL = "https://github.com/markcxx/Xiaozhi-ai/issues"
+CONTACT_EMAIL = "2811016860@qq.com"
+BLOG_URL = "https://www.markqq.com"
+DONATE_URL = "https://ifdian.net/a/markingchen"
 
 # 获取应用程序配置目录（跨平台兼容）
 if sys.platform == "win32":

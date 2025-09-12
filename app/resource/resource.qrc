@@ -11,6 +11,7 @@
     
     <!-- 图片资源 -->
     <file>images/LOGO.png</file>
+    <file>images/LOGO.svg</file>
     <file>images/icon.icns</file>
     <file>images/icon.png</file>
     

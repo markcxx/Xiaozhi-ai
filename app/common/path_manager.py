@@ -147,11 +147,19 @@ class PathManager:
         """查找资源目录
         
         Args:
-            dir_path: 相对于app/resource的目录路径
+            dir_path: 目录路径
             
         Returns:
             找到的目录绝对路径，未找到返回None
         """
+        dir_path = Path(dir_path)
+        
+        # 特殊处理：models目录在项目根目录
+        if str(dir_path) == "models":
+            models_path = self.get_project_root() / "models"
+            return models_path
+        
+        # 其他目录在app/resource下查找
         found_path = self.find_resource(dir_path)
         if found_path and found_path.is_dir():
             return found_path

@@ -16,7 +16,7 @@ from .system_tray import SystemTrayIcon
 from ..common.signal_bus import signalBus
 from ..common.style_sheet import setStyleSheet
 from ..common.base_display import BaseDisplay
-from ..common.config import config
+from ..common.config import config, DONATE_URL
 
 
 class Widget(QFrame):
@@ -81,17 +81,17 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         self.checkActivationStatus()
 
     def initNavigation(self):
-        self.addSubInterface(self.homeInterface, FIF.HOME, 'Home')
+        self.addSubInterface(self.homeInterface, FIF.HOME, '聊天')
 
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
-            widget=NavigationAvatarWidget('XiaoZhi AI', 'app/resource/images/avatar.png'),
+            widget=NavigationAvatarWidget('XiaoZhi AI', ':/images/LOGO.svg'),
             onClick=self.showMessageBox,
             position=NavigationItemPosition.BOTTOM,
         )
 
-        self.addSubInterface(self.settingInterface, FIF.SETTING, 'Settings', NavigationItemPosition.BOTTOM)
+        self.addSubInterface(self.settingInterface, FIF.SETTING, '设置', NavigationItemPosition.BOTTOM)
 
         # 设置导航栏展开宽度
         self.navigationInterface.setExpandWidth(200)
@@ -99,7 +99,7 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
     def initWindow(self):
         self.setMinimumSize(700, 650)
         self.resize(700, 650)
-        self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
+        self.setWindowIcon(QIcon(':/images/LOGO.svg'))
         self.setWindowTitle('XiaoZhi AI')
         
         # 设置退出行为
@@ -144,13 +144,15 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
 
     def showMessageBox(self):
         w = MessageBox(
-            'XiaoZhi AI',
-            '欢迎使用XiaoZhi AI智能助手！',
+            '支持作者🥰',
+            '个人开发不易，如果这个项目帮助到了您，可以考虑请作者喝一瓶快乐水🥤。您的支持就是作者开发和维护项目的动力🚀',
             self
         )
-        w.yesButton.setText('确定')
-        w.cancelButton.setText('取消')
-        w.exec()
+        w.yesButton.setText('来啦老弟')
+        w.cancelButton.setText('下次一定')
+        
+        if w.exec():
+            QDesktopServices.openUrl(QUrl(DONATE_URL))
     
     def connectSignalToSlot(self):
         """连接信号到槽函数"""
