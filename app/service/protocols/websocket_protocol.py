@@ -3,6 +3,12 @@ import json
 import ssl
 import time
 
+# 兼容不同版本的websockets库
+try:
+    from websockets.legacy.client import connect as websockets_connect
+except ImportError:
+    from websockets import connect as websockets_connect
+
 import websockets
 
 from app.common.constants import AudioConfig
@@ -73,10 +79,10 @@ class WebsocketProtocol(Protocol):
             if self.WEBSOCKET_URL.startswith("wss://"):
                 current_ssl_context = ssl_context
 
-            # 建立WebSocket连接 (兼容不同Python版本的写法)
+            # 建立WebSocket连接 (兼容不同版本的websockets库)
             try:
                 # 新的写法 (在Python 3.11+版本中)
-                self.websocket = await websockets.connect(
+                self.websocket = await websockets_connect(
                     uri=self.WEBSOCKET_URL,
                     ssl=current_ssl_context,
                     additional_headers=self.HEADERS,
@@ -88,7 +94,7 @@ class WebsocketProtocol(Protocol):
                 )
             except TypeError:
                 # 旧的写法 (在较早的Python版本中)
-                self.websocket = await websockets.connect(
+                self.websocket = await websockets_connect(
                     self.WEBSOCKET_URL,
                     ssl=current_ssl_context,
                     extra_headers=self.HEADERS,

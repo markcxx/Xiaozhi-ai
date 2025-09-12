@@ -1,6 +1,7 @@
 # coding:utf-8
 import os
-from PyQt5.QtCore import Qt, pyqtSignal, QUrl
+import asyncio
+from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QTimer, QThread
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QStackedWidget, QFileDialog
 
@@ -11,13 +12,42 @@ from qfluentwidgets import (
     setTheme, setThemeColor, FluentIcon as FIF, InfoBar, TitleLabel, qconfig, InfoBarPosition,
     BodyLabel
 )
-from PyQt5.QtCore import QTimer
 
 from ..common.config import config
 from ..common.style_sheet import setStyleSheet
 from ..common.signal_bus import signalBus
 from ..common import resource_rc
 from ..common.common_utils import copy_to_clipboard
+from ..common.device_activator import DeviceActivator
+from ..common.config_manager import ConfigManager
+
+
+class ActivationThread(QThread):
+    """设备激活线程"""
+    activation_completed = pyqtSignal(bool)
+    activation_error = pyqtSignal(str)
+    
+    def __init__(self, device_activator, activation_data):
+        super().__init__()
+        self.device_activator = device_activator
+        self.activation_data = activation_data
+    
+    def run(self):
+        try:
+            # 在新线程中创建事件循环
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                result = loop.run_until_complete(
+                    self.device_activator.process_activation(self.activation_data)
+                )
+                self.activation_completed.emit(result)
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            self.activation_error.emit(str(e))
 
 
 class SettingInterface(ScrollArea):
@@ -342,10 +372,6 @@ class ActivationSettingsPage(QWidget):
     
     def __onGenerateCodeClicked(self):
         """生成验证码按钮点击事件 - 基于py-xiaozhi逻辑"""
-        import asyncio
-        from ..common.device_activator import DeviceActivator
-        from ..common.config_manager import ConfigManager
-        
         try:
             self.generateCodeCard.setEnabled(False)
             self.generateCodeCard.setContent(self.tr('生成中...'))
@@ -433,35 +459,6 @@ class ActivationSettingsPage(QWidget):
     
     def __startActivationProcess(self, device_activator, activation_data):
         """启动激活流程 - 基于py-xiaozhi逻辑"""
-        from PyQt5.QtCore import QThread, pyqtSignal
-        
-        class ActivationThread(QThread):
-            activation_completed = pyqtSignal(bool)
-            activation_error = pyqtSignal(str)
-            
-            def __init__(self, device_activator, activation_data):
-                super().__init__()
-                self.device_activator = device_activator
-                self.activation_data = activation_data
-            
-            def run(self):
-                try:
-                    import asyncio
-                    # 在新线程中创建事件循环
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    
-                    try:
-                        result = loop.run_until_complete(
-                            self.device_activator.process_activation(self.activation_data)
-                        )
-                        self.activation_completed.emit(result)
-                    finally:
-                        loop.close()
-                        
-                except Exception as e:
-                    self.activation_error.emit(str(e))
-        
         def on_activation_completed(success):
             if success:
                 InfoBar.success(
@@ -501,8 +498,6 @@ class ActivationSettingsPage(QWidget):
     
     def __startActivationCheck(self, device_activator):
         """启动激活状态检测"""
-        from PyQt5.QtCore import QTimer
-        
         # 保存device_activator引用
         self.device_activator = device_activator
         
@@ -517,50 +512,51 @@ class ActivationSettingsPage(QWidget):
     def __checkActivationStatus(self):
         """检测激活状态"""
         try:
-            if hasattr(self, 'device_activator') and self.device_activator:
-                # 检查本地激活状态
-                if self.device_activator.is_activated():
-                    # 本地已激活，停止检测
-                    if hasattr(self, 'activationTimer'):
-                        self.activationTimer.stop()
-                    InfoBar.success(
-                        self.tr('激活成功'),
-                        self.tr('设备已成功激活！'),
-                        position=InfoBarPosition.BOTTOM_RIGHT,
-                        duration=3000,
-                        parent=self.window()
-                    )
-                    self.generateCodeCard.setContent(self.tr('设备已激活'))
-                    self.generateCodeCard.setEnabled(False)
-                    return
-                
-                # 检查服务器激活状态
-                try:
-                    activation_data = self.device_activator.get_activation_data()
-                    if activation_data and "activation" not in activation_data:
-                        # 服务器端已激活，更新本地状态
-                        self.device_activator.set_activation_status(True)
-                        if hasattr(self, 'activationTimer'):
-                            self.activationTimer.stop()
-                        InfoBar.success(
-                            self.tr('激活成功'),
-                            self.tr('设备已成功激活！'),
-                            position=InfoBarPosition.BOTTOM_RIGHT,
-                            duration=3000,
-                            parent=self.window()
-                        )
-                        self.generateCodeCard.setContent(self.tr('设备已激活'))
-                        self.generateCodeCard.setEnabled(False)
-                except Exception as e:
-                    print(f"[状态检测] 检查服务器状态失败: {e}")
-                    # 网络错误时不影响主流程，继续等待
-            else:
+            if not (hasattr(self, 'device_activator') and self.device_activator):
                 # 没有device_activator引用，停止检测
-                if hasattr(self, 'activationTimer'):
-                    self.activationTimer.stop()
+                self._stopActivationTimer()
+                return
+            
+            # 检查本地激活状态
+            if self.device_activator.is_activated():
+                self._handleActivationSuccess()
+                return
+            
+            # 检查服务器激活状态
+            self._checkServerActivationStatus()
                 
         except Exception as e:
             print(f"[状态检测] 激活状态检测异常: {e}")
+    
+    def _stopActivationTimer(self):
+        """停止激活状态检测定时器"""
+        if hasattr(self, 'activationTimer'):
+            self.activationTimer.stop()
+    
+    def _handleActivationSuccess(self):
+        """处理激活成功"""
+        self._stopActivationTimer()
+        InfoBar.success(
+            self.tr('激活成功'),
+            self.tr('设备已成功激活！'),
+            position=InfoBarPosition.BOTTOM_RIGHT,
+            duration=3000,
+            parent=self.window()
+        )
+        self.generateCodeCard.setContent(self.tr('设备已激活'))
+        self.generateCodeCard.setEnabled(False)
+    
+    def _checkServerActivationStatus(self):
+        """检查服务器激活状态"""
+        try:
+            activation_data = self.device_activator.get_activation_data()
+            if activation_data and "activation" not in activation_data:
+                # 服务器端已激活，更新本地状态
+                self.device_activator.set_activation_status(True)
+                self._handleActivationSuccess()
+        except Exception as e:
+            print(f"[状态检测] 检查服务器状态失败: {e}")
+            # 网络错误时不影响主流程，继续等待
     
 
     

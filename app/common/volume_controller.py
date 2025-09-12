@@ -5,7 +5,7 @@ import subprocess
 from functools import wraps
 from typing import Any, Callable, List, Optional
 
-from src.utils.logging_config import get_logger
+from app.common.logging_config import get_logger
 
 
 class VolumeController:

@@ -322,18 +322,6 @@ class DeviceActivator:
                             f"尝试激活 (尝试 {attempt + 1}/{max_retries})..."
                         )
 
-                        # 重试时的语音播放已禁用
-                        # if attempt > 0 and code:
-                        #     try:
-                        #         from app.common.common_utils import (
-                        #             play_audio_nonblocking,
-                        #         )
-                        #         text = f".请登录到控制面板添加设备，输入验证码：{' '.join(code)}..."
-                        #         play_audio_nonblocking(text)
-                        #         self.logger.info(f"重试播放验证码: {code}")
-                        #     except Exception as e:
-                        #         self.logger.error(f"重试播放验证码失败: {e}")
-
                         # 发送激活请求
                         async with session.post(
                             activate_url, headers=headers, json=payload
