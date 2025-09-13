@@ -288,3 +288,19 @@ def find_libs_dir(system: str = None, arch: str = None) -> Optional[Path]:
             return system_dir
     
     return libs_dir
+
+
+def get_user_downloads_dir() -> Path:
+    """获取用户下载目录
+    
+    Returns:
+        用户下载目录路径
+    """
+    # Windows系统下载目录
+    if os.name == 'nt':
+        downloads_dir = Path.home() / "Downloads"
+    else:
+        # Linux/macOS系统下载目录
+        downloads_dir = Path.home() / "Downloads"
+    
+    return downloads_dir

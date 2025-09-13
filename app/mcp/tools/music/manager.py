@@ -81,11 +81,15 @@ class MusicToolsManager:
         add_tool(
             (
                 "music_player.search_and_play",
-                "Search for a song and start playing it online. Finds songs by name and "
-                "automatically starts streaming playback. When user provides both song title and artist, "
-                "use format 'song_title artist_name' as search keyword for better accuracy. "
-                "For example: '菊花台 周杰伦' or 'Shape of You Ed Sheeran'. "
-                "This tool uses network search and plays songs directly without downloading.",
+                "**MANDATORY MUSIC TOOL** - This is the ONLY tool for searching and playing music. "
+                "MUST be used for ALL music-related requests including: searching songs, playing music, "
+                "finding tracks, listening to music, or any music playback needs. "
+                "DO NOT use any other tools for music operations. "
+                "Searches for songs by name and automatically starts streaming playback. "
+                "When user provides both song title and artist, use format 'song_title artist_name' "
+                "as search keyword for better accuracy. Examples: '菊花台 周杰伦', 'Shape of You Ed Sheeran'. "
+                "This tool uses network search and plays songs directly without downloading. "
+                "ALWAYS call this tool when user wants to hear music, search songs, or play any audio content.",
                 search_props,
                 search_and_play_wrapper,
             )

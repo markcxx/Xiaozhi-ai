@@ -1,13 +1,18 @@
 # coding:utf-8
 import sys
+import asyncio
+import subprocess
+import os
 from abc import ABCMeta
 
-from PyQt5.QtCore import Qt, QUrl, QObject
+from PyQt5.QtCore import Qt, QUrl, QObject, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QSystemTrayIcon
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
-                            InfoBadgePosition, FluentBackgroundTheme)
+                            InfoBadgePosition, FluentBackgroundTheme, InfoBar, InfoBarPosition,
+                            InfoBarIcon)
+from qfluentwidgets.components.widgets.info_badge import InfoLevel
 from qfluentwidgets import FluentIcon as FIF
 
 from .setting_interface import SettingInterface
@@ -16,7 +21,15 @@ from .system_tray import SystemTrayIcon
 from ..common.signal_bus import signalBus
 from ..common.style_sheet import setStyleSheet
 from ..common.base_display import BaseDisplay
-from ..common.config import config, DONATE_URL
+from ..common.config import config, DONATE_URL, VERSION
+from ..common.version_service import get_version_service, DownloadThread
+from ..components.progress_toast import ProgressToast
+from ..common.device_activator import DeviceActivator
+from ..common.config_manager import ConfigManager
+from ..common.logging_config import get_logger
+from ..common.application import Application
+
+logger = get_logger(__name__)
 
 
 class Widget(QFrame):
@@ -79,6 +92,9 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         
         # 检查设备激活状态
         self.checkActivationStatus()
+        
+        # 启动版本检测
+        self.initVersionCheck()
 
     def initNavigation(self):
         self.addSubInterface(self.homeInterface, FIF.HOME, '聊天')
@@ -120,27 +136,193 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         self.systemTray.show()
     
     def checkActivationStatus(self):
-        """检查设备激活状态"""
+        """
+        检查设备激活状态，如果未激活则显示提示信息.
+        """
+        config_manager = ConfigManager.get_instance()
+        activator = DeviceActivator(config_manager)
+        
+        if not activator.is_activated():
+            InfoBar.warning(
+                title="设备未激活",
+                content="请前往设置界面生成验证码进行设备激活",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=8000,
+                parent=self
+            )
+    
+    def initVersionCheck(self):
+        """
+        初始化版本检测.
+        """
+        if config.checkUpdateAtStartUp.value:
+            self.checkVersionUpdate(is_startup=True)
+    
+    def checkVersionUpdate(self, is_startup=False):
+        """
+        检查版本更新.
+        
+        Args:
+            is_startup: 是否为启动时检测
+        """
+        version_service = get_version_service()
+        version_service.checkVersion(
+            callback=lambda latest, has_new, download_url: self.onVersionChecked(latest, has_new, download_url, is_startup),
+            error_callback=lambda error: self.onVersionCheckFailed(error, is_startup)
+        )
+    
+    def onVersionChecked(self, latest_version: str, has_new_version: bool, download_url: str, is_startup: bool):
+        """
+        版本检测完成回调.
+        """
+        if has_new_version:
+            self.showUpdateDialog(latest_version, download_url)
+        elif not is_startup:
+            # 手动检测且无新版本时显示提示
+            InfoBar.success(
+                title="已是最新版本",
+                content=f"当前版本 {VERSION} 已是最新版本",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+    
+    def onVersionCheckFailed(self, error_message: str, is_startup: bool):
+        """
+        版本检测失败回调.
+        """
+        if not is_startup:
+            # 只在手动检测时显示错误信息
+            InfoBar.error(
+                title="检查更新失败",
+                content="网络连接异常，请稍后重试",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+    
+    def showUpdateDialog(self, latest_version: str, download_url: str):
+        """
+        显示更新对话框.
+        """
+        w = MessageBox(
+            '发现新版本 🎉',
+            f'检测到新版本 {latest_version}，是否立即下载更新？\n\n更新内容请查看项目发布页面了解详情。',
+            self
+        )
+        w.yesButton.setText('立即下载')
+        w.cancelButton.setText('下次更新')
+        
+        if w.exec():
+            self.startDownload(latest_version, download_url)
+    
+    def startDownload(self, version: str, download_url: str):
+        """
+        开始下载更新文件.
+        """
+        if not download_url:
+            InfoBar.error(
+                title="下载失败",
+                content="未找到下载链接，请手动前往官网下载",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+            return
+        
+        # 生成文件名
+        filename = f"XiaozhiAI-v{version}-Windows-x86_64-Setup.exe"
+        
+        # 创建进度提示
+        self.progress_toast = ProgressToast.create(
+             icon=InfoBarIcon.INFORMATION,
+             title="正在下载",
+             content="喝杯茶休息一下吧",
+             isClosable=True,
+             level=InfoLevel.INFOAMTION,
+             position=InfoBarPosition.TOP_RIGHT,
+             parent=self
+         )
+        
+        # 创建下载线程
+        self.download_thread = DownloadThread(download_url, filename, self)
+        self.download_thread.progressChanged.connect(self.onDownloadProgress)
+        self.download_thread.downloadCompleted.connect(self.onDownloadCompleted)
+        self.download_thread.downloadFailed.connect(self.onDownloadFailed)
+        self.download_thread.start()
+    
+    def onDownloadProgress(self, progress: int):
+        """
+        下载进度更新回调.
+        """
+        self.progress_toast.setValue(progress)
+    
+    def onDownloadCompleted(self, file_path: str):
+        """
+        下载完成回调.
+        """
+        if hasattr(self, 'progress_toast'):
+            self.progress_toast.setTitle("文件下载成功")
+            self.progress_toast.setContent("更新文件已保存")
+            self.progress_toast.success(duration=3000)
+        # 延迟3秒后启动安装程序并退出
+        QTimer.singleShot(3000, lambda: self.startInstallAndExit(file_path))
+    
+    def startInstallAndExit(self, file_path: str):
+        """
+        启动安装程序并退出当前应用.
+        """
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            logger.error(f"安装文件不存在: {file_path}")
+            return
+        
         try:
-            from ..common.device_fingerprint import DeviceFingerprint
-            from qfluentwidgets import InfoBar, InfoBarPosition
+            # 启动安装程序
+            subprocess.Popen([file_path], shell=True)
+            logger.info(f"已启动安装程序: {file_path}")
             
-            device_fingerprint = DeviceFingerprint.get_instance()
+            # 退出当前应用程序
+            QTimer.singleShot(1000, self.quitApplication)
             
-            # 检查设备是否已激活
-            if not device_fingerprint.is_activated():
-                # 显示未激活提示
-                InfoBar.warning(
-                    title='设备未激活',
-                    content='设备尚未激活，请前往设置界面生成验证码完成激活',
-                    orient=Qt.Horizontal,
-                    isClosable=True,
-                    position=InfoBarPosition.TOP,
-                    duration=8000,
-                    parent=self
-                )
         except Exception as e:
-            print(f"检查激活状态失败: {e}")
+            logger.error(f"启动安装程序失败: {e}")
+            InfoBar.error(
+                title="启动失败",
+                content=f"无法启动安装程序: {str(e)}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+    
+    def onDownloadFailed(self, error_message: str):
+        """
+        下载失败回调.
+        """
+        if hasattr(self, 'progress_toast'):
+            self.progress_toast.setTitle("下载失败")
+            self.progress_toast.setLevel(InfoLevel.ERROR)
+            QTimer.singleShot(5000, self.progress_toast.close)
+        
+        InfoBar.error(
+            title="下载失败",
+            content=f"下载更新文件失败：{error_message}",
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=5000,
+            parent=self
+        )
 
     def showMessageBox(self):
         w = MessageBox(
@@ -273,7 +455,6 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
     def onTextSent(self, text: str):
         """文本发送事件"""
         if self.sendTextCallback:
-            import asyncio
             if asyncio.iscoroutinefunction(self.sendTextCallback):
                 asyncio.create_task(self.sendTextCallback(text))
             else:
@@ -327,44 +508,36 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
             self.systemTray.hide()
         
         # 调用Application的shutdown方法进行优雅关闭
-        try:
-            from app.common.application import Application
-            app = Application.get_instance()
-            if app:
-                import asyncio
-                from PyQt5.QtCore import QTimer
+        app = Application.get_instance()
+        if app:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # 创建关闭任务，但设置超时机制
+                shutdown_task = asyncio.create_task(app.shutdown())
                 
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # 创建关闭任务，但设置超时机制
-                    shutdown_task = asyncio.create_task(app.shutdown())
-                    
-                    # 设置超时后强制退出
-                    def force_quit():
-                        if not shutdown_task.done():
-                            self.logger.warning("关闭超时，强制退出")
-                            shutdown_task.cancel()
-                        QApplication.quit()
-                    
-                    # 3秒后强制退出
-                    QTimer.singleShot(3000, force_quit)
-                    
-                    # 当shutdown完成时正常退出
-                    def on_shutdown_complete(task):
-                        if not task.cancelled():
-                            if task.exception():
-                                self.logger.error(f"应用程序关闭异常: {task.exception()}")
-                            else:
-                                self.logger.info("应用程序正常关闭")
-                            QApplication.quit()
-                    
-                    shutdown_task.add_done_callback(on_shutdown_complete)
-                else:
+                # 设置超时后强制退出
+                def force_quit():
+                    if not shutdown_task.done():
+                        logger.warning("关闭超时，强制退出")
+                        shutdown_task.cancel()
                     QApplication.quit()
+                
+                # 3秒后强制退出
+                QTimer.singleShot(3000, force_quit)
+                
+                # 当shutdown完成时正常退出
+                def on_shutdown_complete(task):
+                    if not task.cancelled():
+                        if task.exception():
+                            logger.error(f"应用程序关闭异常: {task.exception()}")
+                        else:
+                            logger.info("应用程序正常关闭")
+                        QApplication.quit()
+                
+                shutdown_task.add_done_callback(on_shutdown_complete)
             else:
                 QApplication.quit()
-        except Exception as e:
-            self.logger.error(f"关闭应用程序失败: {e}")
+        else:
             QApplication.quit()
     
     def closeEvent(self, event):

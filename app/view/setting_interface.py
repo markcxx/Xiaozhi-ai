@@ -267,14 +267,38 @@ class OtherSettingsPage(QWidget):
             parent=self.updateGroup
         )
         
+        self.checkUpdateCard = PrimaryPushSettingCard(
+            self.tr('检查更新'),
+            FIF.INFO,
+            self.tr('检查更新'),
+            self.tr('检查是否有新版本可用'),
+            self.updateGroup
+        )
+        
         self.__initLayout()
+        self.__connectSignalToSlot()
     
     def __initLayout(self):
         self.updateGroup.addSettingCard(self.updateOnStartUpCard)
+        self.updateGroup.addSettingCard(self.checkUpdateCard)
         
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(0, 0, 0, 0)
         self.expandLayout.addWidget(self.updateGroup)
+    
+    def __connectSignalToSlot(self):
+        """连接信号到槽函数"""
+        self.checkUpdateCard.clicked.connect(self._onCheckUpdateClicked)
+    
+    def _onCheckUpdateClicked(self):
+        """检查更新按钮点击事件"""
+        # 获取主窗口实例并调用版本检测
+        main_window = self.window()
+        if hasattr(main_window, 'checkVersionUpdate'):
+            main_window.checkVersionUpdate(is_startup=False)
+    
+    def tr(self, text):
+        return text
 
 
 class AboutAuthorPage(QWidget):
@@ -306,8 +330,9 @@ class AboutAuthorPage(QWidget):
             self.aboutGroup
         )
         
-        self.aboutCard = PrimaryPushSettingCard(
-            self.tr('检查更新'),
+        self.aboutCard = HyperlinkCard(
+            APP_URL,
+            self.tr('查看项目'),
             FIF.INFO,
             self.tr('关于'),
             f'© {self.tr("版权所有")} {COPYYEAR}, {AUTHOR}. {self.tr("版本")} {VERSION}',
