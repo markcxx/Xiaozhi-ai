@@ -20,6 +20,10 @@ from ..common import resource_rc
 from ..common.common_utils import copy_to_clipboard
 from ..common.device_activator import DeviceActivator
 from ..common.config_manager import ConfigManager
+from ..common.startup_manager import get_startup_manager
+from ..common.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class ActivationThread(QThread):
@@ -227,25 +231,100 @@ class PersonalizationPage(QWidget):
         qconfig.themeChanged.connect(setTheme)
         qconfig.themeChanged.connect(self._onThemeChanged)
         self.themeColorCard.colorChanged.connect(lambda c: setThemeColor(c))
-        qconfig.appRestartSig.connect(self.__showRestartTooltip)
         self.themeCard.optionChanged.connect(lambda: setTheme(qconfig.get(qconfig.themeMode)))
         self.themeCard.optionChanged.connect(self._onThemeChanged)
-        self.zoomCard.optionChanged.connect(self.__showRestartTooltip)
+        self.zoomCard.optionChanged.connect(self._onDpiScaleChanged)
+        self.startupCard.checkedChanged.connect(self._onStartupChanged)
     
     def _onThemeChanged(self):
         """主题变化处理"""
         # 发送主题变化信号
         signalBus.themeChangedSig.emit()
     
-    def __showRestartTooltip(self):
-        """ 显示重启提示 """
+    def _onDpiScaleChanged(self, scale):
+        """DPI缩放变化处理"""
         InfoBar.success(
-            self.tr('更新成功'),
-            self.tr('配置在重启后生效'),
+            self.tr('设置成功'),
+            self.tr('配置在重启软件后生效'),
+            orient=Qt.Horizontal,
+            isClosable=True,
             position=InfoBarPosition.BOTTOM_RIGHT,
             duration=1500,
             parent=self.window()
         )
+    
+    def _onStartupChanged(self, checked):
+        """开机启动设置变化处理"""
+        try:
+            startup_manager = get_startup_manager()
+            if checked:
+                if startup_manager.enable_startup():
+                    # 更新配置文件
+                    config.startupOnBoot.value = True
+                    InfoBar.success(
+                        self.tr('设置成功'),
+                        self.tr('已启用开机自启动'),
+                        position=InfoBarPosition.BOTTOM_RIGHT,
+                        duration=1500,
+                        parent=self.window()
+                    )
+                else:
+                    InfoBar.error(
+                        self.tr('设置失败'),
+                        self.tr('启用开机自启动失败'),
+                        position=InfoBarPosition.BOTTOM_RIGHT,
+                        duration=1500,
+                        parent=self.window()
+                    )
+                    # 恢复开关状态
+                    self.startupCard.setChecked(False)
+            else:
+                if startup_manager.disable_startup():
+                    # 更新配置文件
+                    config.startupOnBoot.value = False
+                    InfoBar.success(
+                        self.tr('设置成功'),
+                        self.tr('已禁用开机自启动'),
+                        position=InfoBarPosition.BOTTOM_RIGHT,
+                        duration=1500,
+                        parent=self.window()
+                    )
+                else:
+                    InfoBar.error(
+                        self.tr('设置失败'),
+                        self.tr('禁用开机自启动失败'),
+                        position=InfoBarPosition.BOTTOM_RIGHT,
+                        duration=1500,
+                        parent=self.window()
+                    )
+                    # 恢复开关状态
+                    self.startupCard.setChecked(True)
+        except Exception as e:
+            InfoBar.error(
+                self.tr('错误'),
+                self.tr(f'开机启动设置失败: {str(e)}'),
+                position=InfoBarPosition.BOTTOM_RIGHT,
+                duration=3000,
+                parent=self.window()
+            )
+            # 恢复开关状态
+            self.startupCard.setChecked(not checked)
+    
+    def __syncStartupStatus(self):
+        """同步开机启动状态"""
+        try:
+            startup_manager = get_startup_manager()
+            actual_status = startup_manager.is_startup_enabled()
+            config_status = config.startupOnBoot.value
+            
+            # 如果配置与实际状态不一致，以实际状态为准
+            if actual_status != config_status:
+                config.startupOnBoot.value = actual_status
+                self.startupCard.setChecked(actual_status)
+            else:
+                self.startupCard.setChecked(config_status)
+        except Exception as e:
+            logger.error(f"同步开机启动状态失败: {e}")
 
 
 class OtherSettingsPage(QWidget):

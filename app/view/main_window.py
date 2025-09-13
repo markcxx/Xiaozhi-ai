@@ -124,7 +124,7 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
-
+    
     def initSystemTray(self):
         """初始化系统托盘"""
         # 检查系统是否支持系统托盘

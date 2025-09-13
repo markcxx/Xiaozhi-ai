@@ -69,12 +69,33 @@ def main():
         import warnings
         warnings.filterwarnings("ignore", category=UserWarning, module="nanobind")
         
-        # 启用高DPI缩放
-        QApplication.setHighDpiScaleFactorRoundingPolicy(
-            Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-        )
-        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        # 应用DPI缩放设置
+        from app.common.config import config
+        scale_value = config.dpiScale.value
+        
+        if scale_value != "Auto":
+            # 启用高DPI缩放
+            QApplication.setHighDpiScaleFactorRoundingPolicy(
+                Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+            )
+            QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+            QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+            
+            # 设置缩放因子
+            try:
+                if isinstance(scale_value, str) and scale_value.endswith('%'):
+                    scale_factor = float(scale_value.rstrip('%')) / 100.0
+                else:
+                    scale_factor = float(scale_value)
+                
+                os.environ['QT_SCALE_FACTOR'] = str(scale_factor)
+                logger.info(f"已设置DPI缩放: {scale_value}")
+            except Exception as e:
+                logger.error(f"设置DPI缩放失败: {e}")
+        else:
+            # 使用系统DPI设置
+            QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+            QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # 创建QApplication实例
         qt_app = QApplication.instance() or QApplication(sys.argv)

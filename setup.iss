@@ -2,7 +2,7 @@
 ; 有关创建 Inno Setup 脚本文件的详细信息，请参阅帮助文档！
 
 #define MyAppName "XiaoZhi AI"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "markcxx"
 #define MyAppURL "https://github.com/markcxx/Xiaozhi-ai"
 #define MyAppExeName "Xiaozhi-ai.exe"
@@ -35,7 +35,7 @@ LicenseFile=D:\Code\xiaozhiAI\LICENSE.txt
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=D:\Code\xiaozhiAI\installer
-OutputBaseFilename=XiaozhiAI-v1.0.0-Windows-x86_64-Setup
+OutputBaseFilename=XiaozhiAI-v1.0.1-Windows-x86_64-Setup
 SetupIconFile={#MyAppIcon}
 SolidCompression=yes
 WizardStyle=modern
