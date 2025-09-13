@@ -7,6 +7,9 @@ import threading
 import time
 import typing as _t  # noqa: F401
 from typing import Set
+from PyQt5.QtCore import QSharedMemory
+from PyQt5.QtNetwork import QLocalServer, QLocalSocket
+from PyQt5.QtCore import QIODevice
 
 from app.common.constants import AbortReason, DeviceState, ListeningMode
 from app.mcp.mcp_server import McpServer
@@ -96,6 +99,9 @@ class Application:
             logger.error("尝试创建Application的多个实例")
             raise Exception("Application是单例类，请使用get_instance()获取实例")
         Application._instance = self
+
+        # 检查是否已有实例运行
+        self._check_single_instance()
 
         logger.debug("初始化Application实例")
 
@@ -197,6 +203,80 @@ class Application:
         self._incoming_audio_idle_handle = None
 
         logger.debug("Application实例初始化完成")
+
+    def _check_single_instance(self):
+        """
+        检查是否已有应用实例运行，如果有则退出当前实例.
+        """
+        app_key = "XiaoZhiAI_SingleInstance"
+        
+        # 清理可能存在的共享内存
+        QSharedMemory(app_key).attach()
+        self._shared_memory = QSharedMemory()
+        self._shared_memory.setKey(app_key)
+        
+        if self._shared_memory.attach():
+            # 已有实例运行，发送消息并退出
+            logger.info("检测到应用程序已在运行，发送显示消息到现有实例")
+            self._send_message_to_existing_instance("show")
+            sys.exit(0)
+        
+        # 创建共享内存标记
+        if not self._shared_memory.create(1):
+            logger.error(f"创建共享内存失败: {self._shared_memory.errorString()}")
+            # 如果创建失败，可能是权限问题，继续运行但记录警告
+            logger.warning("无法创建单例标记，可能允许多实例运行")
+        
+        # 设置本地服务器监听其他实例的消息
+        self._setup_local_server(app_key)
+        logger.info("单例检查完成，应用程序启动")
+    
+    def _send_message_to_existing_instance(self, message: str):
+        """
+        向已存在的应用实例发送消息.
+        """
+        app_key = "XiaoZhiAI_SingleInstance"
+        socket = QLocalSocket()
+        socket.connectToServer(app_key, QIODevice.WriteOnly)
+        
+        if socket.waitForConnected(1000):
+            socket.write(message.encode("utf-8"))
+            socket.waitForBytesWritten(1000)
+            socket.disconnectFromServer()
+            logger.info(f"消息已发送到现有实例: {message}")
+        else:
+            logger.warning(f"无法连接到现有实例: {socket.errorString()}")
+    
+    def _setup_local_server(self, app_key: str):
+        """
+        设置本地服务器监听其他实例的消息.
+        """
+        self._local_server = QLocalServer()
+        QLocalServer.removeServer(app_key)
+        
+        if self._local_server.listen(app_key):
+            self._local_server.newConnection.connect(self._handle_new_connection)
+            logger.info(f"本地服务器已启动，监听键: {app_key}")
+        else:
+            logger.warning(f"无法启动本地服务器: {self._local_server.errorString()}")
+    
+    def _handle_new_connection(self):
+        """
+        处理来自其他实例的连接.
+        """
+        socket = self._local_server.nextPendingConnection()
+        if socket and socket.waitForReadyRead(1000):
+            message = socket.readAll().data().decode('utf-8')
+            logger.info(f"收到来自其他实例的消息: {message}")
+            
+            # 显示主窗口
+            if self.display and hasattr(self.display, 'showMainWindow'):
+                try:
+                    self.display.showMainWindow()
+                except Exception as e:
+                    logger.error(f"显示主窗口失败: {e}")
+            
+            socket.disconnectFromServer()
 
     async def run(self, **kwargs):
         """
@@ -1441,10 +1521,31 @@ class Application:
             # 10. 最后停止UI显示
             await self._safe_close_resource(self.display, "显示界面")
 
+            # 11. 清理单例资源
+            self._cleanup_singleton_resources()
+
             logger.info("应用程序关闭完成")
 
         except Exception as e:
             logger.error(f"关闭应用程序时出错: {e}", exc_info=True)
+    
+    def _cleanup_singleton_resources(self):
+        """
+        清理单例相关资源.
+        """
+        try:
+            if hasattr(self, '_local_server') and self._local_server:
+                self._local_server.close()
+                logger.info("本地服务器已关闭")
+        except Exception as e:
+            logger.error(f"关闭本地服务器失败: {e}")
+        
+        try:
+            if hasattr(self, '_shared_memory') and self._shared_memory:
+                self._shared_memory.detach()
+                logger.info("共享内存已释放")
+        except Exception as e:
+            logger.error(f"释放共享内存失败: {e}")
 
     def _initialize_mcp_server(self):
         """

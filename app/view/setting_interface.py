@@ -1,7 +1,7 @@
 # coding:utf-8
 import os
 import asyncio
-from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QTimer, QThread
+from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QTimer, QThread, QObject
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QStackedWidget, QFileDialog
 
@@ -52,6 +52,27 @@ class ActivationThread(QThread):
                 
         except Exception as e:
             self.activation_error.emit(str(e))
+
+
+class StartupThread(QThread):
+    """开机启动设置线程"""
+    startup_completed = pyqtSignal(bool, bool)  # (success, enabled)
+    startup_error = pyqtSignal(str)
+    
+    def __init__(self, enable):
+        super().__init__()
+        self.enable = enable
+        
+    def run(self):
+        try:
+            startup_manager = get_startup_manager()
+            if self.enable:
+                success = startup_manager.enable_startup()
+            else:
+                success = startup_manager.disable_startup()
+            self.startup_completed.emit(success, self.enable)
+        except Exception as e:
+            self.startup_error.emit(str(e))
 
 
 class SettingInterface(ScrollArea):
@@ -139,6 +160,9 @@ class PersonalizationPage(QWidget):
         super().__init__(parent)
         self.setObjectName("personal")
         self.expandLayout = ExpandLayout(self)
+        
+        # 初始化线程
+        self.startup_thread = None
         
         # 主题设置组
         self.themeGroup = SettingCardGroup(self.tr('主题设置'), self)
@@ -255,60 +279,72 @@ class PersonalizationPage(QWidget):
     
     def _onStartupChanged(self, checked):
         """开机启动设置变化处理"""
-        try:
-            startup_manager = get_startup_manager()
-            if checked:
-                if startup_manager.enable_startup():
-                    # 更新配置文件
-                    config.startupOnBoot.value = True
-                    InfoBar.success(
-                        self.tr('设置成功'),
-                        self.tr('已启用开机自启动'),
-                        position=InfoBarPosition.BOTTOM_RIGHT,
-                        duration=1500,
-                        parent=self.window()
-                    )
-                else:
-                    InfoBar.error(
-                        self.tr('设置失败'),
-                        self.tr('启用开机自启动失败'),
-                        position=InfoBarPosition.BOTTOM_RIGHT,
-                        duration=1500,
-                        parent=self.window()
-                    )
-                    # 恢复开关状态
-                    self.startupCard.setChecked(False)
+        # 如果有正在运行的线程，先停止
+        if self.startup_thread and self.startup_thread.isRunning():
+            return
+            
+        # 禁用开关，防止重复点击
+        self.startupCard.setEnabled(False)
+        
+        # 创建并启动后台线程
+        self.startup_thread = StartupThread(checked)
+        self.startup_thread.startup_completed.connect(self._onStartupCompleted)
+        self.startup_thread.startup_error.connect(self._onStartupError)
+        self.startup_thread.finished.connect(lambda: self.startupCard.setEnabled(True))
+        self.startup_thread.start()
+    
+    def _onStartupCompleted(self, success, enabled):
+        """开机启动操作完成"""
+        if success:
+            # 更新配置文件
+            config.startupOnBoot.value = enabled
+            if enabled:
+                InfoBar.success(
+                    self.tr('设置成功'),
+                    self.tr('已启用开机自启动'),
+                    position=InfoBarPosition.BOTTOM_RIGHT,
+                    duration=1500,
+                    parent=self.window()
+                )
             else:
-                if startup_manager.disable_startup():
-                    # 更新配置文件
-                    config.startupOnBoot.value = False
-                    InfoBar.success(
-                        self.tr('设置成功'),
-                        self.tr('已禁用开机自启动'),
-                        position=InfoBarPosition.BOTTOM_RIGHT,
-                        duration=1500,
-                        parent=self.window()
-                    )
-                else:
-                    InfoBar.error(
-                        self.tr('设置失败'),
-                        self.tr('禁用开机自启动失败'),
-                        position=InfoBarPosition.BOTTOM_RIGHT,
-                        duration=1500,
-                        parent=self.window()
-                    )
-                    # 恢复开关状态
-                    self.startupCard.setChecked(True)
-        except Exception as e:
-            InfoBar.error(
-                self.tr('错误'),
-                self.tr(f'开机启动设置失败: {str(e)}'),
-                position=InfoBarPosition.BOTTOM_RIGHT,
-                duration=3000,
-                parent=self.window()
-            )
-            # 恢复开关状态
-            self.startupCard.setChecked(not checked)
+                InfoBar.success(
+                    self.tr('设置成功'),
+                    self.tr('已禁用开机自启动'),
+                    position=InfoBarPosition.BOTTOM_RIGHT,
+                    duration=1500,
+                    parent=self.window()
+                )
+        else:
+            # 操作失败，恢复开关状态
+            self.startupCard.setChecked(not enabled)
+            if enabled:
+                InfoBar.error(
+                    self.tr('设置失败'),
+                    self.tr('启用开机自启动失败'),
+                    position=InfoBarPosition.BOTTOM_RIGHT,
+                    duration=1500,
+                    parent=self.window()
+                )
+            else:
+                InfoBar.error(
+                    self.tr('设置失败'),
+                    self.tr('禁用开机自启动失败'),
+                    position=InfoBarPosition.BOTTOM_RIGHT,
+                    duration=1500,
+                    parent=self.window()
+                )
+    
+    def _onStartupError(self, error_msg):
+        """开机启动操作错误"""
+        InfoBar.error(
+            self.tr('错误'),
+            self.tr(f'开机启动设置失败: {error_msg}'),
+            position=InfoBarPosition.BOTTOM_RIGHT,
+            duration=3000,
+            parent=self.window()
+        )
+        # 恢复开关状态
+        self.startupCard.setChecked(not self.startupCard.isChecked())
     
     def __syncStartupStatus(self):
         """同步开机启动状态"""
