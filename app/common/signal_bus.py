@@ -14,6 +14,10 @@ class SignalBus(QObject):
     
     # 界面刷新信号
     refreshInterfaceSig = pyqtSignal()
+    
+    # 快捷键变化信号
+    recordShortcutChanged = pyqtSignal(str)
+    interruptShortcutChanged = pyqtSignal(str)
 
 
 signalBus = SignalBus()

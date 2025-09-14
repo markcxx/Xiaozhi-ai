@@ -19,7 +19,7 @@ def setup_logging():
 
     # 创建根日志记录器
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.WARNING)  # 设置根日志级别
+    root_logger.setLevel(logging.WARNING)  # 恢复为WARNING级别
 
     # 清除已有的处理器（避免重复添加）
     if root_logger.handlers:

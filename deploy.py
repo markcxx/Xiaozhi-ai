@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from shutil import copy, copytree
 from distutils.sysconfig import get_python_lib
@@ -8,6 +9,11 @@ from distutils.sysconfig import get_python_lib
 #
 # 2. run deploy script
 #    $ python deploy.py
+
+# 记录部署开始时间
+start_time = time.time()
+print(f"开始部署时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+print("="*50)
 
 args = [
     'nuitka',
@@ -65,6 +71,18 @@ for src in copied_site_packages:
             copytree(src, dist)
     except:
         pass
+
+# 计算并显示部署总耗时
+end_time = time.time()
+total_time = end_time - start_time
+hours = int(total_time // 3600)
+minutes = int((total_time % 3600) // 60)
+seconds = int(total_time % 60)
+
+print("="*50)
+print(f"结束部署时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+print(f"部署总耗时: {hours:02d}:{minutes:02d}:{seconds:02d} ({total_time:.2f}秒)")
+print("部署完成！")
 
 
 # copy standard library

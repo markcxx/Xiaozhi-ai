@@ -1,10 +1,11 @@
 import asyncio
 import time
 from dataclasses import dataclass
-from typing import Dict, Optional, Set
+from typing import Dict, Optional, Set, Tuple
 
 from app.common.constants import AbortReason
 from app.common.config_manager import ConfigManager
+from app.common.config import config
 from app.common.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -33,6 +34,10 @@ class ShortcutManager:
         self.config = ConfigManager.get_instance()
         self.shortcuts_config = self.config.get_config("SHORTCUTS", {})
         self.enabled = self.shortcuts_config.get("ENABLED", True)
+        
+        # 从config.py读取快捷键设置
+        self.record_shortcut = config.recordShortcut.value
+        self.interrupt_shortcut = config.interruptShortcut.value
 
         # 内部状态
         self.pressed_keys: Set[str] = set()
@@ -94,21 +99,40 @@ class ShortcutManager:
         """
         从配置加载快捷键设置.
         """
+        # 解析录音快捷键
+        if self.record_shortcut:
+            modifier, key = self._parse_shortcut(self.record_shortcut)
+            if key:  # 只要有key就可以，modifier可以为空
+                self.shortcuts["MANUAL_PRESS"] = ShortcutConfig(
+                    modifier=modifier,
+                    key=key,
+                    description="按住说话"
+                )
+        
+        # 解析打断快捷键
+        if self.interrupt_shortcut:
+            modifier, key = self._parse_shortcut(self.interrupt_shortcut)
+            if key:  # 只要有key就可以，modifier可以为空
+                self.shortcuts["ABORT"] = ShortcutConfig(
+                    modifier=modifier,
+                    key=key,
+                    description="打断对话"
+                )
+        
+        # 加载其他快捷键配置（如果存在）
         shortcut_types = [
-            "MANUAL_PRESS",
             "AUTO_TOGGLE",
-            "ABORT",
             "MODE_TOGGLE",
             "WINDOW_TOGGLE",
         ]
 
         for shortcut_type in shortcut_types:
-            config = self.shortcuts_config.get(shortcut_type, {})
-            if config:
+            config_data = self.shortcuts_config.get(shortcut_type, {})
+            if config_data:
                 self.shortcuts[shortcut_type] = ShortcutConfig(
-                    modifier=config.get("modifier", "ctrl"),
-                    key=config.get("key", "").lower(),
-                    description=config.get("description", ""),
+                    modifier=config_data.get("modifier", "ctrl"),
+                    key=config_data.get("key", "").lower(),
+                    description=config_data.get("description", ""),
                 )
 
     async def start(self) -> bool:
@@ -186,9 +210,23 @@ class ShortcutManager:
             logger.info("2. X11 或 Wayland 环境正常运行")
 
         elif system == "Windows":
-            logger.info("检测到 Windows 系统，请确认:")
-            logger.info("1. 以管理员权限运行（某些情况下需要）")
-            logger.info("2. 防病毒软件未阻止键盘监听")
+            logger.info("检测到 Windows 系统")
+            logger.info("快捷键功能可能需要管理员权限或被防病毒软件阻止")
+            
+            # 测试基本的键盘监听功能
+            try:
+                from pynput import keyboard
+                test_listener = keyboard.Listener(on_press=lambda key: None)
+                test_listener.start()
+                import time
+                time.sleep(0.1)
+                test_listener.stop()
+                logger.info("键盘监听权限检查通过")
+                return True
+            except Exception as e:
+                logger.error(f"键盘监听权限检查失败: {e}")
+                logger.error("请尝试以管理员权限运行程序，或检查防病毒软件设置")
+                return False
 
         return True
 
@@ -244,6 +282,51 @@ class ShortcutManager:
         except Exception as e:
             logger.error(f"按键处理错误: {e}", exc_info=True)
             self._handle_listener_error()
+    
+    def _parse_shortcut(self, shortcut_str: str) -> Tuple[str, str]:
+        """
+        解析快捷键字符串，如"Ctrl+I"或"Space".
+        返回(modifier, key)元组.
+        """
+        if not shortcut_str:
+            return "", ""
+        
+        shortcut_str = shortcut_str.strip()
+        
+        # 处理单个按键（如Space）
+        if "+" not in shortcut_str:
+            return "", shortcut_str.lower()
+        
+        # 处理组合键
+        parts = [part.strip() for part in shortcut_str.split("+")]
+        if len(parts) < 2:
+            return "", shortcut_str.lower()
+        
+        # 最后一个是主键，前面的是修饰键
+        key = parts[-1].lower()
+        modifiers = [part.lower() for part in parts[:-1]]
+        
+        # 组合修饰键
+        modifier_str = "+".join(modifiers)
+        
+        return modifier_str, key
+    
+    def reload_shortcuts(self):
+        """
+        重新加载快捷键配置.
+        """
+        # 重新读取配置
+        self.record_shortcut = config.recordShortcut.value
+        self.interrupt_shortcut = config.interruptShortcut.value
+        
+        # 清空现有快捷键配置
+        self.shortcuts.clear()
+        
+        # 重新加载
+        self._load_shortcuts()
+        
+        logger.info("快捷键配置已重新加载")
+        self._log_shortcut_config()
 
     def _on_key_release(self, key):
         """
@@ -360,7 +443,10 @@ class ShortcutManager:
         """
         # 检查修饰键
         modifier_check = True
-        if config.modifier == "ctrl" and not ctrl_pressed:
+        if config.modifier == "":
+            # 没有修饰键，确保没有任何修饰键被按下
+            modifier_check = not (ctrl_pressed or alt_pressed or shift_pressed or cmd_pressed)
+        elif config.modifier == "ctrl" and not ctrl_pressed:
             modifier_check = False
         elif config.modifier == "alt" and not alt_pressed:
             modifier_check = False

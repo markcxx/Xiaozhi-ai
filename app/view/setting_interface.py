@@ -12,6 +12,7 @@ from qfluentwidgets import (
     setTheme, setThemeColor, FluentIcon as FIF, InfoBar, TitleLabel, qconfig, InfoBarPosition,
     BodyLabel, MessageBox
 )
+from ..components.shortcut_setting_card import ShortcutSettingCard
 
 from ..common.config import config, APP_NAME, VERSION, AUTHOR, COPYRIGHT, COPYYEAR, APP_URL, FALLBACK_URL, CONTACT_EMAIL, BLOG_URL, DONATE_URL
 from ..common.style_sheet import setStyleSheet
@@ -371,6 +372,25 @@ class OtherSettingsPage(QWidget):
         self.setObjectName("other")
         self.expandLayout = ExpandLayout(self)
         
+        # 快捷键设置组
+        self.shortcutGroup = SettingCardGroup(self.tr('快捷键设置'), self)
+        
+        self.recordShortcutCard = ShortcutSettingCard(
+            config.recordShortcut,
+            FIF.MICROPHONE,
+            self.tr('录音'),
+            self.tr('按下开始录音，抬起停止录音'),
+            parent=self.shortcutGroup
+        )
+        
+        self.interruptShortcutCard = ShortcutSettingCard(
+            config.interruptShortcut,
+            FIF.PAUSE,
+            self.tr('打断对话'),
+            self.tr('快速打断当前对话'),
+            parent=self.shortcutGroup
+        )
+        
         # 更新设置组
         self.updateGroup = SettingCardGroup(self.tr('软件更新'), self)
         
@@ -394,16 +414,27 @@ class OtherSettingsPage(QWidget):
         self.__connectSignalToSlot()
     
     def __initLayout(self):
+        # 添加快捷键设置卡片到组
+        self.shortcutGroup.addSettingCard(self.recordShortcutCard)
+        self.shortcutGroup.addSettingCard(self.interruptShortcutCard)
+        
+        # 添加更新设置卡片到组
         self.updateGroup.addSettingCard(self.updateOnStartUpCard)
         self.updateGroup.addSettingCard(self.checkUpdateCard)
         
+        # 添加组到布局
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(0, 0, 0, 0)
+        self.expandLayout.addWidget(self.shortcutGroup)
         self.expandLayout.addWidget(self.updateGroup)
     
     def __connectSignalToSlot(self):
         """连接信号到槽函数"""
         self.checkUpdateCard.clicked.connect(self._onCheckUpdateClicked)
+        
+        # 连接快捷键变化信号
+        self.recordShortcutCard.shortcutChanged.connect(self._onRecordShortcutChanged)
+        self.interruptShortcutCard.shortcutChanged.connect(self._onInterruptShortcutChanged)
     
     def _onCheckUpdateClicked(self):
         """检查更新按钮点击事件"""
@@ -411,6 +442,22 @@ class OtherSettingsPage(QWidget):
         main_window = self.window()
         if hasattr(main_window, 'checkVersionUpdate'):
             main_window.checkVersionUpdate(is_startup=False)
+    
+    def _onRecordShortcutChanged(self, shortcut: str):
+        """录音快捷键变化事件"""
+        print(f"录音快捷键已更改为: {shortcut}")
+        # TODO: 注册录音快捷键到全局快捷键管理器
+        # 可以通过信号总线通知其他组件
+        from ..common.signal_bus import signalBus
+        signalBus.recordShortcutChanged.emit(shortcut)
+    
+    def _onInterruptShortcutChanged(self, shortcut: str):
+        """打断对话快捷键变化事件"""
+        print(f"打断对话快捷键已更改为: {shortcut}")
+        # TODO: 注册打断对话快捷键到全局快捷键管理器
+        # 可以通过信号总线通知其他组件
+        from ..common.signal_bus import signalBus
+        signalBus.interruptShortcutChanged.emit(shortcut)
     
     def tr(self, text):
         return text

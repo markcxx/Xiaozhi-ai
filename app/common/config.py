@@ -73,6 +73,10 @@ class Config(QConfig):
     
     # software update
     checkUpdateAtStartUp = ConfigItem("Update", "CheckUpdateAtStartUp", True, BoolValidator())
+    
+    # shortcut keys
+    recordShortcut = ConfigItem("Shortcuts", "RecordShortcut", "Space", restart=False)
+    interruptShortcut = ConfigItem("Shortcuts", "InterruptShortcut", "Ctrl+I", restart=False)
 
 
 config = Config()

@@ -24,6 +24,7 @@ from ..common.base_display import BaseDisplay
 from ..common.config import config, DONATE_URL, VERSION
 from ..common.version_service import get_version_service, DownloadThread
 from ..components.progress_toast import ProgressToast
+from ..components.shortcut_manager import ShortcutManager
 from ..common.device_activator import DeviceActivator
 from ..common.config_manager import ConfigManager
 from ..common.logging_config import get_logger
@@ -80,6 +81,9 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         
         # 系统托盘组件
         self.systemTray = None
+        
+        # 快捷键管理器
+        self.shortcutManager = None
 
         self.initNavigation()
         self.initWindow()
@@ -89,6 +93,9 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         
         # 初始化系统托盘
         self.initSystemTray()
+        
+        # 初始化快捷键管理器
+        self.initShortcutManager()
         
         # 检查设备激活状态
         self.checkActivationStatus()
@@ -134,6 +141,15 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
             
         self.systemTray = SystemTrayIcon(self)
         self.systemTray.show()
+    
+    def initShortcutManager(self):
+        """初始化快捷键管理器"""
+        try:
+            self.shortcutManager = ShortcutManager()
+            logger.info("快捷键管理器初始化成功")
+        except Exception as e:
+            logger.error(f"快捷键管理器初始化失败: {e}", exc_info=True)
+            self.shortcutManager = None
     
     def checkActivationStatus(self):
         """
@@ -344,6 +360,10 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         # 应用消息信号
         signalBus.appMessageSig.connect(self.onAppMessage)
         
+        # 快捷键变更信号
+        signalBus.recordShortcutChanged.connect(self.onRecordShortcutChanged)
+        signalBus.interruptShortcutChanged.connect(self.onInterruptShortcutChanged)
+        
         # 连接home interface的信号
         self.homeInterface.manualPressed.connect(self.onManualButtonPress)
         self.homeInterface.manualReleased.connect(self.onManualButtonRelease)
@@ -409,9 +429,24 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
     async def start(self):
         """启动GUI"""
         self.show()
+        
+        # 启动快捷键管理器
+        if self.shortcutManager:
+            try:
+                await self.shortcutManager.start()
+                logger.info("快捷键管理器启动成功")
+            except Exception as e:
+                logger.error(f"快捷键管理器启动失败: {e}", exc_info=True)
     
     def closeWindow(self):
         """关闭窗口处理"""
+        # 停止快捷键管理器
+        if hasattr(self, 'shortcutManager') and self.shortcutManager:
+            try:
+                asyncio.create_task(self.shortcutManager.stop())
+            except Exception as e:
+                logger.error(f"停止快捷键管理器失败: {e}")
+        
         if hasattr(self, 'systemTray') and self.systemTray:
             self.systemTray.hide()
         super().close()
@@ -459,6 +494,18 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
                 asyncio.create_task(self.sendTextCallback(text))
             else:
                 self.sendTextCallback(text)
+    
+    def onRecordShortcutChanged(self, shortcut: str):
+        """录音快捷键变更事件"""
+        logger.info(f"录音快捷键已更改为: {shortcut}")
+        if self.shortcutManager:
+            self.shortcutManager.reload_shortcuts()
+    
+    def onInterruptShortcutChanged(self, shortcut: str):
+        """打断快捷键变更事件"""
+        logger.info(f"打断快捷键已更改为: {shortcut}")
+        if self.shortcutManager:
+            self.shortcutManager.reload_shortcuts()
     
     def switchToAutoMode(self):
         """切换到自动模式的UI更新"""

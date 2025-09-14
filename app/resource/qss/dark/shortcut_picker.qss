@@ -1,0 +1,36 @@
+/* ShortcutKeyButton 暗色主题样式 */
+ShortcutKeyButton {
+    color: black;
+    background-color: --ThemeColorPrimary;
+    border: 1px solid --ThemeColorLight1;
+    border-bottom: 1px solid --ThemeColorDark1;
+    border-radius: 5px;
+    padding: 5px 12px 6px 12px;
+    font-weight: bold;
+    font-size: 12px;
+    outline: none;
+}
+
+/* 有图标的按钮样式 */
+ShortcutKeyButton[hasIcon=true] {
+    padding: 0px;
+    text-align: center;
+}
+
+ShortcutKeyButton:disabled {
+    color: black;
+    background-color: --ThemeColorPrimary;
+    border: 1px solid --ThemeColorLight1;
+}
+
+ShortcutKeyButton:hover {
+    background-color: --ThemeColorLight1;
+    border: 1px solid --ThemeColorLight2;
+    border-bottom: 1px solid --ThemeColorDark1;
+}
+
+ShortcutKeyButton:pressed {
+    color: rgba(0, 0, 0, 0.63);
+    background-color: --ThemeColorLight3;
+    border: 1px solid --ThemeColorLight3;
+}

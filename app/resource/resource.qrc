@@ -4,16 +4,19 @@
     <file>qss/light/home_interface.qss</file>
     <file>qss/light/setting_interface.qss</file>
     <file>qss/light/main_window.qss</file>
+    <file>qss/light/shortcut_picker.qss</file>
 
     <file>qss/dark/home_interface.qss</file>
     <file>qss/dark/setting_interface.qss</file>
     <file>qss/dark/main_window.qss</file>
+    <file>qss/dark/shortcut_picker.qss</file>
     
     <!-- 图片资源 -->
     <file>images/LOGO.png</file>
     <file>images/LOGO.svg</file>
     <file>images/icon.icns</file>
     <file>images/icon.png</file>
+    <file>images/images/windows.svg</file>
     
     <!-- 表情gif资源 -->
     <file>images/emojis/angry.gif</file>
