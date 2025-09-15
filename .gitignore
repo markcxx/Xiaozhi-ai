@@ -12,7 +12,7 @@ models/
 assets/
 .trae/
 VidFlowDesktop/
-pyqt5-fluent-example/
+PyQt-Fluent-Widgets/
 music_api.py
 installer/
 LICENSE.txt

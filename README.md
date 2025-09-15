@@ -8,7 +8,7 @@
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](MIT-LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-blue.svg)](#)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](#)
+[![Version](https://img.shields.io/badge/Version-1.0.2-green.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](#)
 [![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-blue.svg)](#)
 
@@ -20,11 +20,54 @@ XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Mi
 
 ## 📸 应用截图
 
-### 主界面
-![主界面](app/resource/images/main_window.png)
+### 主要界面展示
 
-### 设置界面
-![设置界面](app/resource/images/setting_interface.png)
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+  <div style="text-align: center;">
+    <img src="app/resource/images/screenshot/main_window.png" alt="主界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>主界面</strong> - 语音交互页面</p>
+  </div>
+  <div style="text-align: center;">
+    <img src="app/resource/images/screenshot/settnging_interface.png" alt="设置界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>设置界面</strong> - 个性化配置选项</p>
+  </div>
+  <div style="text-align: center;">
+    <img src="app/resource/images/screenshot/mcp_interface.png" alt="MCP服务界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>MCP服务界面</strong></p>
+  </div>
+  <div style="text-align: center;">
+    <img src="app/resource/images/screenshot/mcp_interface_dark.png" alt="MCP服务界面(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>MCP服务界面(暗色)</strong> - 护眼暗色主题</p>
+  </div>
+</div>
+
+### Windows 透明特效展示
+
+#### Acrylic 亚克力效果
+<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center;">
+  <div style="flex: 1; text-align: center;">
+    <img src="app/resource/images/screenshot/mcp_interface_acrylic.png" alt="Acrylic效果(亮色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>Acrylic 亮色主题</strong></p>
+  </div>
+  <div style="flex: 1; text-align: center;">
+    <img src="app/resource/images/screenshot/mcp_interface_acrylic_dark.png" alt="Acrylic效果(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>Acrylic 暗色主题</strong></p>
+  </div>
+</div>
+<p style="text-align: center; color: #666; font-style: italic;">现代化的亚克力毛玻璃效果，提供优雅的半透明视觉体验</p>
+
+#### Aero 毛玻璃效果
+<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center;">
+  <div style="flex: 1; text-align: center;">
+    <img src="app/resource/images/screenshot/setting_interface_Aero.png" alt="Aero效果(亮色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>Aero 亮色主题</strong></p>
+  </div>
+  <div style="flex: 1; text-align: center;">
+    <img src="app/resource/images/screenshot/setting_interface_Aero_dark.png" alt="Aero效果(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <p><strong>Aero 暗色主题</strong></p>
+  </div>
+</div>
+<p style="text-align: center; color: #666; font-style: italic;">经典的 Windows Aero 毛玻璃效果，怀旧与现代的完美结合</p>
 
 ## ✨ 主要特性
 
@@ -32,6 +75,7 @@ XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Mi
 - **Fluent Design**: 采用 Microsoft Fluent Design 设计语言
 - **响应式布局**: 支持窗口缩放和自适应布局
 - **主题切换**: 支持明暗主题无缝切换
+- **Windows 透明特效**: 支持 Acrylic、Mica、Aero 等多种透明材质效果
 - **流畅动画**: 丰富的过渡动画和视觉反馈
 
 ### 🎤 智能语音交互
@@ -181,6 +225,34 @@ XiaoZhi-ai/
 - **问题反馈**: https://github.com/markcxx/Xiaozhi-ai/issues
 
 ## 🔄 更新日志
+
+### v1.0.2 (2025-09-15)
+
+📋 **版本信息**
+- **版本号**: v1.0.2
+- **发布日期**: 2025年9月15日
+- **支持平台**: Windows 10/11 (x64)
+- **国内下载链接**: [XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe](https://software.markqq.com/XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe)
+
+✨ **更新日志**
+- 🎹 新增快捷键控制语音小智
+- 🔌 添加MCP服务界面，包含服务卡片组件和详情弹窗
+- 🎨 新增Windows透明特效支持（Acrylic、Mica、Aero等）
+- 🖼️ 优化界面布局和视觉效果
+
+### v1.0.1 (2025-09-14)
+
+📋 **版本信息**
+- **版本号**: v1.0.1
+- **发布日期**: 2025年9月
+- **支持平台**: Windows 10/11 (x64)
+- **国内下载链接**: [XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe](https://software.markqq.com/XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe)
+
+✨ **更新日志**
+- 🚀 新增开机自启动个性化设置
+- 📏 新增DPI缩放个性化选项
+- 🔄 新增版本检测和新版本自动更新功能
+- 🔧 修复多实例运行问题
 
 ### v1.0.0 (2025-09-12)
 
