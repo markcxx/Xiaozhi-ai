@@ -22,21 +22,21 @@ XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Mi
 
 ### 主要界面展示
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; max-width: 800px;">
   <div style="text-align: center;">
-    <img src="app/resource/images/screenshot/main_window.png" alt="主界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/main_window.png" alt="主界面" style="width: 100%; max-width: 350px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>主界面</strong> - 语音交互页面</p>
   </div>
   <div style="text-align: center;">
-    <img src="app/resource/images/screenshot/settnging_interface.png" alt="设置界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/settnging_interface.png" alt="设置界面" style="width: 100%; max-width: 350px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>设置界面</strong> - 个性化配置选项</p>
   </div>
   <div style="text-align: center;">
-    <img src="app/resource/images/screenshot/mcp_interface.png" alt="MCP服务界面" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/mcp_interface.png" alt="MCP服务界面" style="width: 100%; max-width: 350px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>MCP服务界面</strong></p>
   </div>
   <div style="text-align: center;">
-    <img src="app/resource/images/screenshot/mcp_interface_dark.png" alt="MCP服务界面(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/mcp_interface_dark.png" alt="MCP服务界面(暗色)" style="width: 100%; max-width: 350px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>MCP服务界面(暗色)</strong> - 护眼暗色主题</p>
   </div>
 </div>
@@ -44,26 +44,26 @@ XiaoZhi AI 是一个现代化的智能语音助手桌面应用程序，采用 Mi
 ### Windows 透明特效展示
 
 #### Acrylic 亚克力效果
-<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center;">
+<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center; max-width: 800px;">
   <div style="flex: 1; text-align: center;">
-    <img src="app/resource/images/screenshot/mcp_interface_acrylic.png" alt="Acrylic效果(亮色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/mcp_interface_acrylic.png" alt="Acrylic效果(亮色)" style="width: 100%; max-width: 380px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>Acrylic 亮色主题</strong></p>
   </div>
   <div style="flex: 1; text-align: center;">
-    <img src="app/resource/images/screenshot/mcp_interface_acrylic_dark.png" alt="Acrylic效果(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/mcp_interface_acrylic_dark.png" alt="Acrylic效果(暗色)" style="width: 100%; max-width: 380px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>Acrylic 暗色主题</strong></p>
   </div>
 </div>
 <p style="text-align: center; color: #666; font-style: italic;">现代化的亚克力毛玻璃效果，提供优雅的半透明视觉体验</p>
 
 #### Aero 毛玻璃效果
-<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center;">
+<div style="display: flex; gap: 20px; margin: 20px 0; align-items: center; max-width: 800px;">
   <div style="flex: 1; text-align: center;">
-    <img src="app/resource/images/screenshot/setting_interface_Aero.png" alt="Aero效果(亮色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/setting_interface_Aero.png" alt="Aero效果(亮色)" style="width: 100%; max-width: 380px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>Aero 亮色主题</strong></p>
   </div>
   <div style="flex: 1; text-align: center;">
-    <img src="app/resource/images/screenshot/setting_interface_Aero_dark.png" alt="Aero效果(暗色)" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <img src="app/resource/images/screenshot/setting_interface_Aero_dark.png" alt="Aero效果(暗色)" style="width: 100%; max-width: 380px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <p><strong>Aero 暗色主题</strong></p>
   </div>
 </div>
