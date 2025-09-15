@@ -1,5 +1,6 @@
 # coding:utf-8
 import os
+import sys
 import asyncio
 from PyQt5.QtCore import Qt, pyqtSignal, QUrl, QTimer, QThread, QObject
 from PyQt5.QtGui import QDesktopServices
@@ -188,6 +189,17 @@ class PersonalizationPage(QWidget):
             self.themeGroup
         )
         
+        # Windows背景效果设置
+        if sys.platform == "win32" and hasattr(config, 'backgroundEffect'):
+            self.backgroundEffectCard = ComboBoxSettingCard(
+                config.backgroundEffect,
+                FIF.TRANSPARENT,
+                self.tr('窗口背景效果'),
+                self.tr('设置窗口背景透明效果和材质'),
+                texts=["Acrylic", "Mica", "MicaBlur", "MicaAlt", "Aero", "None"],
+                parent=self.themeGroup
+            )
+        
         # 界面设置组
         self.interfaceGroup = SettingCardGroup(self.tr('界面设置'), self)
         
@@ -239,6 +251,10 @@ class PersonalizationPage(QWidget):
         self.themeGroup.addSettingCard(self.themeCard)
         self.themeGroup.addSettingCard(self.themeColorCard)
         
+        # 添加背景效果卡片（仅Windows）
+        if sys.platform == "win32" and hasattr(self, 'backgroundEffectCard'):
+            self.themeGroup.addSettingCard(self.backgroundEffectCard)
+        
         self.interfaceGroup.addSettingCard(self.zoomCard)
         self.interfaceGroup.addSettingCard(self.languageCard)
         
@@ -260,11 +276,26 @@ class PersonalizationPage(QWidget):
         self.themeCard.optionChanged.connect(self._onThemeChanged)
         self.zoomCard.optionChanged.connect(self._onDpiScaleChanged)
         self.startupCard.checkedChanged.connect(self._onStartupChanged)
+        
+        # 背景效果变化信号（仅Windows）
+        if sys.platform == "win32" and hasattr(self, 'backgroundEffectCard'):
+            self.backgroundEffectCard.comboBox.currentTextChanged.connect(self._onBackgroundEffectChanged)
     
     def _onThemeChanged(self):
         """主题变化处理"""
         # 发送主题变化信号
         signalBus.themeChangedSig.emit()
+        # 主题变化时重新应用背景效果
+        if sys.platform == "win32":
+            self._onBackgroundEffectChanged()
+    
+    def _onBackgroundEffectChanged(self, effect=None):
+        """背景效果变化时应用新效果"""
+        if sys.platform == "win32":
+            # 获取主窗口并应用背景效果
+            main_window = self.window()
+            if hasattr(main_window, 'applyBackgroundEffect'):
+                main_window.applyBackgroundEffect()
     
     def _onDpiScaleChanged(self, scale):
         """DPI缩放变化处理"""

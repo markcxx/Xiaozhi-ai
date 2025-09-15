@@ -8,6 +8,16 @@ from abc import ABCMeta
 from PyQt5.QtCore import Qt, QUrl, QObject, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QSystemTrayIcon
+
+# Windows特效支持
+if sys.platform == "win32":
+    try:
+        from qfluentwidgets import WindowEffect as WindowsEffect
+    except ImportError:
+        try:
+            from qfluentwidgets.window import WindowEffect as WindowsEffect
+        except ImportError:
+            WindowsEffect = None
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
                             InfoBadgePosition, FluentBackgroundTheme, InfoBar, InfoBarPosition,
@@ -86,12 +96,18 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         
         # 快捷键管理器
         self.shortcutManager = None
+        
+        # Windows特效支持 - 使用FluentWindow自带的windowEffect
+        # FluentWindow已经初始化了windowEffect，无需重新创建
 
         self.initNavigation()
         self.initWindow()
         
         # 连接信号
         self.connectSignalToSlot()
+        
+        # 应用背景效果（在信号连接后）
+        self.applyBackgroundEffect()
         
         # 初始化系统托盘
         self.initSystemTray()
@@ -134,6 +150,76 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
+    
+    def applyBackgroundEffect(self):
+        """应用背景效果"""
+        if sys.platform != "win32":
+            return
+            
+        # 检查windowEffect是否可用
+        if not hasattr(self, 'windowEffect') or not self.windowEffect:
+            logger.warning("WindowEffect不可用，跳过背景效果设置")
+            return
+            
+        try:
+            # 获取背景效果设置
+            effect = getattr(config, 'backgroundEffect', None)
+            if not effect:
+                logger.info("未找到背景效果配置")
+                return
+                
+            effect_value = effect.value
+            logger.info(f"应用背景效果: {effect_value}")
+            
+            # 移除之前的背景效果
+            self.windowEffect.removeBackgroundEffect(self.winId())
+            
+            # 获取当前主题模式
+            is_dark = config.themeMode.value == Theme.DARK
+            
+            if effect_value == "Acrylic":
+                self.setStyleSheet("background-color: transparent")
+                color = "00000030" if is_dark else "FFFFFF30"
+                self.windowEffect.setAcrylicEffect(self.winId(), color)
+            elif effect_value == "Mica":
+                self.setStyleSheet("background-color: transparent")
+                self.windowEffect.setMicaEffect(self.winId(), is_dark)
+            elif effect_value == "MicaBlur":
+                self.windowEffect.setMicaEffect(self.winId(), is_dark)
+                self.setStyleSheet("background-color: transparent")
+            elif effect_value == "MicaAlt":
+                self.windowEffect.setMicaEffect(self.winId(), is_dark, isAlt=True)
+                self.setStyleSheet("background-color: transparent")
+            elif effect_value == "Aero":
+                self.windowEffect.setAeroEffect(self.winId())
+                self.setStyleSheet("background-color: transparent")
+                if self.isLessThanWin10():
+                    if hasattr(self, 'titleBar'):
+                        self.titleBar.closeBtn.hide()
+                        self.titleBar.minBtn.hide()
+                        self.titleBar.maxBtn.hide()
+            elif effect_value == "None":
+                self.setStyleSheet("")
+                if self.isLessThanWin10():
+                    if hasattr(self, 'titleBar'):
+                        self.titleBar.closeBtn.show()
+                        self.titleBar.minBtn.show()
+                        self.titleBar.maxBtn.show()
+                    
+        except Exception as e:
+            logger.error(f"应用背景效果失败: {e}", exc_info=True)
+    
+    def isLessThanWin10(self):
+        """检查是否为Windows 10以下版本"""
+        if sys.platform != "win32":
+            return False
+        try:
+            import platform
+            version = platform.version()
+            major_version = int(version.split('.')[0])
+            return major_version < 10
+        except:
+            return False
     
     def initSystemTray(self):
         """初始化系统托盘"""
@@ -367,6 +453,10 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         signalBus.recordShortcutChanged.connect(self.onRecordShortcutChanged)
         signalBus.interruptShortcutChanged.connect(self.onInterruptShortcutChanged)
         
+        # 背景效果配置变化信号
+        if sys.platform == "win32" and hasattr(config, 'backgroundEffect'):
+            config.backgroundEffect.valueChanged.connect(self.onBackgroundEffectChanged)
+        
         # 连接home interface的信号
         self.homeInterface.manualPressed.connect(self.onManualButtonPress)
         self.homeInterface.manualReleased.connect(self.onManualButtonRelease)
@@ -378,6 +468,23 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
     def refreshInterface(self):
         """刷新界面样式"""
         self.setQss()
+        # 主题变化时重新应用背景效果
+        self.applyBackgroundEffect()
+        
+        # 对于Mica系列效果，延迟重新应用以确保效果正确
+        if sys.platform == "win32" and hasattr(config, 'backgroundEffect'):
+            effect_value = config.backgroundEffect.value
+            if effect_value in ['Mica', 'MicaBlur', 'MicaAlt']:
+                QTimer.singleShot(500, self.applyBackgroundEffect)
+    
+    def onBackgroundEffectChanged(self, value):
+        """背景效果配置变化时的回调"""
+        logger.info(f"背景效果配置变化: {value}")
+        self.applyBackgroundEffect()
+        
+        # 对于Mica系列效果，延迟重新应用
+        if value in ['Mica', 'MicaBlur', 'MicaAlt']:
+            QTimer.singleShot(500, self.applyBackgroundEffect)
     
     def setQss(self):
         """设置样式表"""

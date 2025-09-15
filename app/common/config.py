@@ -77,6 +77,13 @@ class Config(QConfig):
     # shortcut keys
     recordShortcut = ConfigItem("Shortcuts", "RecordShortcut", "Space", restart=False)
     interruptShortcut = ConfigItem("Shortcuts", "InterruptShortcut", "Ctrl+I", restart=False)
+    
+    # Transparent material quality
+    if sys.platform == "win32":
+        backgroundEffect = OptionsConfigItem(
+            "Personalization", "BackgroundEffect", "None", 
+            OptionsValidator(["Acrylic", "Mica", "MicaBlur", "MicaAlt", "Aero", "None"])
+        )
 
 
 config = Config()
