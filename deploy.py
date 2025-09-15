@@ -31,11 +31,11 @@ args = [
     '--include-data-dir=libs=libs',
     '--windows-console-mode=disable',
     '--windows-file-description="XiaoZhi AI"',
-    '--windows-product-version=1.0.1',
+    '--windows-product-version=1.0.2',
     '--windows-company-name=markingchen.inc',
     '--show-progress',
     '--show-memory',
-    '--windows-file-version=1.0.1',
+    '--windows-file-version=1.0.2',
     '--output-dir=D:/Code/xiaozhiAI/build',
     'D:/Code/xiaozhiAI/Xiaozhi-ai.py'
 ]

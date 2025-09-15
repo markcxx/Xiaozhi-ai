@@ -11,7 +11,7 @@ from qfluentwidgets import ConfigItem, OptionsConfigItem, OptionsValidator, Bool
 
 # 应用程序信息
 APP_NAME = "XiaoZhi AI"
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 AUTHOR = "markcxx"
 COPYRIGHT = "markcxx"
 COPYYEAR = "2025"
