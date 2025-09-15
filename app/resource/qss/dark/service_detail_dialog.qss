@@ -1,0 +1,117 @@
+/* 服务详情弹窗样式 - 暗色主题 */
+
+/* 滚动区域 */
+#dialogScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+/* 内容容器 */
+#dialogContentWidget {
+    background-color: transparent;
+}
+
+/* 头部卡片 */
+#dialogHeaderCard {
+    background-color: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 12px;
+}
+
+/* 弹窗标题 */
+#dialogTitle {
+    color: #f9fafb;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+/* 状态标签 */
+#dialogStatusBadge {
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 头部描述 */
+#dialogHeaderDesc {
+    color: #d1d5db;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* 使用方法卡片 */
+#dialogUsageCard {
+    background-color: #111827;
+    border: 1px solid #374151;
+    border-radius: 10px;
+}
+
+/* 功能卡片 */
+#dialogFeaturesCard {
+    background-color: #0c1e2e;
+    border: 1px solid #1e3a8a;
+    border-radius: 10px;
+}
+
+/* 示例卡片 */
+#dialogExamplesCard {
+    background-color: #1e1b0c;
+    border: 1px solid #a16207;
+    border-radius: 10px;
+}
+
+/* 卡片标题 */
+#dialogCardTitle {
+    color: #f9fafb;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* 卡片内容 */
+#dialogCardContent {
+    color: #d1d5db;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* 功能项容器 */
+#dialogFeatureItem {
+    background-color: rgba(55, 65, 81, 0.5);
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+}
+
+/* 功能图标 */
+#dialogFeatureIcon {
+    color: #60a5fa;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* 功能文字 */
+#dialogFeatureText {
+    color: #e5e7eb;
+    font-size: 13px;
+}
+
+/* 示例项容器 */
+#dialogExampleItem {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: none;
+    border-radius: 8px;
+}
+
+/* 示例项边框色 - 使用属性选择器 */
+#dialogExampleItem[exampleType="code"] {
+    border: 2px solid #60a5fa;
+}
+
+/* 示例文字 */
+#dialogExampleText {
+    color: #93c5fd;
+    font-size: 13px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    line-height: 1.4;
+    font-weight: 500;
+}

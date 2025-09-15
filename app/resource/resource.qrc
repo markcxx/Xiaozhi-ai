@@ -5,11 +5,17 @@
     <file>qss/light/setting_interface.qss</file>
     <file>qss/light/main_window.qss</file>
     <file>qss/light/shortcut_picker.qss</file>
+    <file>qss/light/service_card.qss</file>
+    <file>qss/light/mcp_interface.qss</file>
+    <file>qss/light/service_detail_dialog.qss</file>
 
     <file>qss/dark/home_interface.qss</file>
     <file>qss/dark/setting_interface.qss</file>
     <file>qss/dark/main_window.qss</file>
     <file>qss/dark/shortcut_picker.qss</file>
+    <file>qss/dark/service_card.qss</file>
+    <file>qss/dark/mcp_interface.qss</file>
+    <file>qss/dark/service_detail_dialog.qss</file>
     
     <!-- 图片资源 -->
     <file>images/LOGO.png</file>
@@ -17,6 +23,12 @@
     <file>images/icon.icns</file>
     <file>images/icon.png</file>
     <file>images/images/windows.svg</file>
+    
+    <!-- MCP界面图标 -->
+    <file>images/mcp_interface/weather.svg</file>
+    <file>images/mcp_interface/Music.svg</file>
+    <file>images/mcp_interface/system.svg</file>
+    <file>images/mcp_interface/laugh.svg</file>
     
     <!-- 表情gif资源 -->
     <file>images/emojis/angry.gif</file>

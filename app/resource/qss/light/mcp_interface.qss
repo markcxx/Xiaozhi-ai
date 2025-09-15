@@ -1,0 +1,62 @@
+/* MCP界面样式 - 浅色主题 */
+
+/* 滚动区域样式 */
+ScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+/* MCP界面背景 */
+MCPInterface {
+    background-color: transparent;
+    border: none;
+}
+
+/* 滚动内容区域 */
+#scrollWidget {
+    background-color: transparent;
+    border: none;
+}
+
+/* MCP标题 */
+#mcpLabel {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* MCP介绍卡片 */
+#mcpIntroCard {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* 介绍标题 */
+#introTitle {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* 介绍副标题 */
+#introSubtitle {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+/* 特性卡片 */
+#featureCard {
+    background-color: rgba(249, 250, 251, 0.7);
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+}
+
+/* 特性标题 */
+#featureTitle {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* 特性描述 */
+#featureDesc {
+    color: #9ca3af;
+}

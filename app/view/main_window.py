@@ -17,6 +17,7 @@ from qfluentwidgets import FluentIcon as FIF
 
 from .setting_interface import SettingInterface
 from .home_interface import HomeInterface
+from .mcp_interface import MCPInterface
 from .system_tray import SystemTrayIcon
 from ..common.signal_bus import signalBus
 from ..common.style_sheet import setStyleSheet
@@ -77,6 +78,7 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
 
         # create sub interface
         self.homeInterface = HomeInterface(self)
+        self.mcpInterface = MCPInterface(self)
         self.settingInterface = SettingInterface(self)
         
         # 系统托盘组件
@@ -105,6 +107,7 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
 
     def initNavigation(self):
         self.addSubInterface(self.homeInterface, FIF.HOME, '聊天')
+        self.addSubInterface(self.mcpInterface, FIF.APPLICATION, 'MCP服务')
 
         # add custom widget to bottom
         self.navigationInterface.addWidget(
@@ -198,7 +201,7 @@ class Window(FluentWindow, BaseDisplay, metaclass=CombinedMeta):
         elif not is_startup:
             # 手动检测且无新版本时显示提示
             InfoBar.success(
-                title="已是最新版本",
+                title="检测成功",
                 content=f"当前版本 {VERSION} 已是最新版本",
                 orient=Qt.Horizontal,
                 isClosable=True,
