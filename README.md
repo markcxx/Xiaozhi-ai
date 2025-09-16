@@ -240,7 +240,7 @@ XiaoZhi-ai/
 - **版本号**: v1.0.2
 - **发布日期**: 2025年9月15日
 - **支持平台**: Windows 10/11 (x64)
-- **国内下载链接**: [XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe](https://software.markqq.com/XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe)
+- **国内下载链接**: [XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe](https://software.mark79.cn/XiaozhiAI-v1.0.2-Windows-x86_64-Setup.exe)
 
 ✨ **更新日志**
 - 🎹 新增快捷键控制语音小智
@@ -254,7 +254,7 @@ XiaoZhi-ai/
 - **版本号**: v1.0.1
 - **发布日期**: 2025年9月
 - **支持平台**: Windows 10/11 (x64)
-- **国内下载链接**: [XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe](https://software.markqq.com/XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe)
+- **国内下载链接**: [XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe](https://software.mark79.cn/XiaozhiAI-v1.0.1-Windows-x86_64-Setup.exe)
 
 ✨ **更新日志**
 - 🚀 新增开机自启动个性化设置
